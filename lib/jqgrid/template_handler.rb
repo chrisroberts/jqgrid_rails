@@ -231,7 +231,7 @@ class JQGRID < ::ActionView::TemplateHandler
             item = ref.klass
           end
         end
-        item.table_name + '.' + p.last.to_s
+        p.last.is_a?(Symbol) ? "#{item.table_name}.#{p.last}" : p.last
       end
       
       def process_col_opts(opts)
