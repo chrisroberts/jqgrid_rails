@@ -1,6 +1,8 @@
-require 'jqgrid'
+require 'jqgrid_rails/jqgrid_rails_view'
+require 'jqgrid_rails/jqgrid_rails_generators'
 
-Mime::Type.register 'application/json', :json
-
-ActionView::Template.register_template_handler :jqgrid, JQGRID
-ActionView::Template.exempt_from_layout :jqgrid
+# Load everything into rails
+if(defined? Rails)
+  ActionView::Base.send :include, JqGridView
+  ActionView::Helpers::PrototypeHelper::JavaScriptGenerator::GeneratorMethods.send :include, JqGridGenerators
+end
