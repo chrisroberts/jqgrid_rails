@@ -28,6 +28,7 @@ class JQGRID < ::ActionView::TemplateHandler
     
     attr_reader :controller # used for delegate
     delegate :url_for, :to => :controller # fix for url_for problem with link_to
+    delegate :protect_against_forgery?, :to => :controller
     
     def initialize(controller)
       @controller = controller
