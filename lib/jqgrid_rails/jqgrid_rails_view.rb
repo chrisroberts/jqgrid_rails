@@ -8,7 +8,7 @@ module JqGridRails
     # Write jqGrid instructions out to page
     def jqgrid(grid)
       output = "<table id=\"#{grid.table_id}\"></table>"
-      output << "<div id=\"#{grid.table_id}_pager\"></div>" if grid.has_pager?
+      output << "<div id=\"#{grid.options[:pager]}\"></div>" if grid.has_pager?
       output << javascript_tag(grid.build)
       output.html_safe
     end
