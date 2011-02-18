@@ -16,24 +16,7 @@ module JqGridRails
     # args:: Hash of grid options
     #   :url:: URL to query against (*required unless datatype is local)
     #   :datatype:: local/json/xml
-    #   :col_names:: Array of column names
-    #   :col_models:: Array of column model hashes
-    #   :row_num::
-    #   :row_list::
-    #   :pager::
-    #   :sortname::
-    #   :viewrecords::
-    #   :sortorder::
-    #   :caption::
-    #   :loadonce::
-    #   :height::
-    #   :hidegrid::
-    #   :editable::
-    #   :edittype::
-    #   :multiselect::
-    #   :editoptions::
-    #   :grouping::
-    #   :grouping_view::
+    #   Exhaustive list: http://www.trirand.com/jqgridwiki/doku.php?id=wiki:options
     def initialize(table_id, args={})
       defaults = {
         :datatype => :json,
@@ -54,6 +37,7 @@ module JqGridRails
       end
       @table_id = table_id.gsub('#', '')
       @options = defaults.merge(args)
+      @pager_options = {:edit => false, :add => false, :del => false}
       @local = []
     end
     
@@ -102,6 +86,9 @@ module JqGridRails
         output << "if(typeof(jqgrid_local_data) == 'undefined'){ var jqgrid_local_data = new Hash(); }"
         output << "jqgrid_local_data.set('#{@table_id}', #{format_type_to_js(@local)});"
         output << "for(var i = 0; i < jqgrid_local_data.get('#{@table_id}').length; i++){ jQuery(\"#{@table_id}\").jqGrid('addRowData', i+1, jqgrid_local_data.get('#{@table_id}')[i]); }"
+      end
+      if(has_pager?)
+        output << "jQuery(\"##{@table_id}\").jqGrid('navGrid', '##{@options[:pager]}', #{format_type_to_js(@pager_options)});"
       end
       output
     end
