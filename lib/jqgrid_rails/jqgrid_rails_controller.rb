@@ -1,15 +1,21 @@
 module JqGridRails
   module Controller
 
-    def grid_resort(klass, params, fields)
+    def grid_sort(klass, params, fields)
       sort_col = nil
       if(!params[:sidx].blank?)
-        check = fields.is_a?(Hash) ? fields.detect{|k,v| v.to_s == params[:sidx]}.first
+        check = nil
+        case fields
+          when Hash
+            check = fields.detect{|k,v| v.to_s == params[:sidx]}.try(:first)
+          when Array
+            check = params[:sidx] if fields.map(&:to_s).include?(params[:sidx])
+        end
+        sort_col = check if klass.attribute_method?(check)
       end
       unless(sort_col)
         sort_col = fields.is_a?(Array) ? fields.first : fields.keys.first
       end
-      sort_col = !params[:sidx].blank? && klass.attribute_method?(params[:sidx].to_sym) ? params[:sidx] : fields.is_a?(Array) ? fields.first : fields.keys.first
       sort_ord = params[:sord] == 'asc' ? 'ASC' : 'DESC'
       dbres = klass.paginate(
         :page => params[:page], 
@@ -30,6 +36,5 @@ module JqGridRails
       end
       res.to_json
     end
-
   end
 end
