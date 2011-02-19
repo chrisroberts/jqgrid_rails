@@ -16,6 +16,11 @@ module JqGridRails
     # args:: Hash of grid options
     #   :url:: URL to query against (*required unless datatype is local)
     #   :datatype:: local/json/xml
+    #   :row_id:: This is used by the JSON Reader as the unique ID for a row. By
+    #             default this is the first column of the table. This can set it
+    #             to any other column. For example, instead of looking up users
+    #             by ID and including that information in the table, we can use
+    #             username instead: :row_id => :username
     #   Exhaustive list: http://www.trirand.com/jqgridwiki/doku.php?id=wiki:options
     def initialize(table_id, args={})
       defaults = {
@@ -28,7 +33,7 @@ module JqGridRails
           :page => 'page',
           :total => 'total',
           :records => 'records',
-          :id => 0,
+          :id => args.delete(:row_id) || 0,
           :repeatitems => false,
         }
       }
