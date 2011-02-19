@@ -18,7 +18,7 @@ module JqGridRails
         when FalseClass
           arg.to_s
         else
-          "'#{escape_javascript(arg.to_s)}'"
+          arg.to_s =~ %r{^\s*function\s*\(} ? arg.to_s : "'#{escape_javascript(arg.to_s)}'"
       end
     end
   end
