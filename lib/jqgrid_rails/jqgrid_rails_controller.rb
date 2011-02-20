@@ -29,12 +29,30 @@ module JqGridRails
     # Provides generic JSON response for jqGrid requests (sorting/searching)
     def grid_response(klass, params, fields)
       unless((klass.is_a?(Class) && klass.ancestors.include?(ActiveRecord::Base)) || klass.is_a?(ActiveRecord::Relation))
-        raise TypeError.new "Unexpected type received. Allowed types are Class or ActiveRecord::Relation. Received: #{klass.class}"
+        raise TypeError.new "Unexpected type received. Allowed types are Class or ActiveRecord::Relation. Received: #{klass.class.name}"
       end
       rel = apply_sorting(klass, params, fields)
       rel = apply_searching(rel, params, fields)
+      rel = apply_filtering(rel, params, fields)
       hash = create_result_hash(rel, fields)
       hash.to_json
+    end
+
+    # given:: Field for searching
+    # fields:: Array or Hash map of fields
+    # Returns proper field if mapped and ensures field is valid
+    def discover_field(given, fields)
+      col = nil
+      case fields
+        when Hash
+          col = fields.detect{|k,v| v.to_s == given}.try(:first)
+        when Array
+          col = given if fields.map(&:to_s).include?(given)
+        else
+          raise TypeError.new "Expecting fields to be Array or Hash. Received: #{fields.class.name}"
+      end
+      raise NameError.new "Requested field was not found in provided fields list. Given: #{given}" unless col
+      col
     end
 
     # klass:: ActiveRecord::Base class or ActiveRecord::Relation
@@ -44,12 +62,10 @@ module JqGridRails
     def apply_sorting(klass, params, fields)
       sort_col = params[[:sidx, :searchField].find{|sym| !params[:sym].blank?}]
       unless(sort_col)
-        check = nil
-        case fields
-          when Hash
-            sort_col = fields.detect{|k,v| v.to_s == params[:sidx]}.try(:first)
-          when Array
-            sort_col = params[:sidx] if fields.map(&:to_s).include?(params[:sidx])
+        begin
+          sort_col = discover_field(sort_col, fields)
+        rescue NameError
+          # continue on and let the sort_col be set to default below
         end
       end
       unless(sort_col)
@@ -65,10 +81,10 @@ module JqGridRails
     # Applies any search restrictions to result set
     def apply_searching(klass, params, fields)
       unless(params[:searchField].blank?)
-        search_field = params[:searchField]
+        search_field = discover_field(params[:searchField], fields)
         search_oper = params[:searchOper]
         search_string = params[:searchString]
-        raise ArgumentError.new("Invalid search operator received: #{params[:searchOper]}") unless SEARCH_OPERS.keys.include?(search_oper)
+        raise ArgumentError.new("Invalid search operator received: #{search_oper}") unless SEARCH_OPERS.keys.include?(search_oper)
         klass.where([
           "#{search_field} #{SEARCH_OPERS[search_oper].first}",
           SEARCH_OPERS[search_oper].last.call(search_string)
@@ -76,6 +92,31 @@ module JqGridRails
       else
         klass
       end
+    end
+
+    # klass:: ActiveRecord::Base class or ActiveRecord::Relation
+    # params:: Request params
+    # fields:: Fields used within grid
+    # Applies any filter restrictions to result set
+    # TODO: Currently this only supports AND'ing the filters. Need to add
+    #       support for grabbing groupOp from parameters and using it for
+    #       joining query parameters. 
+    def apply_filtering(klass, params, fields)
+      rel = klass
+      unless(params[:filters].blank?)
+        filters = JSON.load(params[:filters])
+        filters['rules'].each do |filter|
+          field = discover_field(filter['field'], fields)
+          oper = filter['op']
+          raise ArgumentError.new("Invalid search operator received: #{oper}") unless SEARCH_OPERS.keys.include?(oper)
+          data = filter['data']
+          rel = rel.where([
+            "#{field} #{SEARCH_OPERS[oper].first}",
+            SEARCH_OPERS[oper].last.call(data)
+          ])
+        end
+      end
+      rel
     end
 
     # klass:: ActiveRecord::Base class or ActiveRecord::Relation

@@ -43,6 +43,9 @@ module JqGridRails
       @table_id = table_id.gsub('#', '')
       @options = defaults.merge(args)
       @pager_options = {:edit => false, :add => false, :del => false}
+      if(t_args = @options.delete(:toolbar))
+        enable_toolbar(t_args.is_a?(Hash) ? t_args : nil)
+      end
       @local = []
     end
     
@@ -82,6 +85,14 @@ module JqGridRails
       end
     end
 
+    def enable_toolbar(options={})
+      options = {} unless options.is_a?(Hash)
+      @toolbar_options = {
+        :string_result => true,
+        :search_on_enter => true
+      }.merge(options)
+    end
+
     # Builds out the jqGrid javascript and returns the string
     def build
       output = ''
@@ -95,10 +106,19 @@ module JqGridRails
       if(has_pager?)
         output << "jQuery(\"##{@table_id}\").jqGrid('navGrid', '##{@options[:pager]}', #{format_type_to_js(@pager_options)});"
       end
+      if(has_toolbar?)
+        output << "jQuery(\"##{@table_id}\").jqGrid('filterToolbar', #{format_type_to_js(@toolbar_options)});"
+      end
       output
     end
     alias_method :to_s, :build
 
+    # Returns if the grid has a toolbar enabled
+    def has_toolbar?
+      !@toolbar_options.empty?
+    end
+
+    # Returns if the grid has a pager enabled
     def has_pager?
       @options.has_key?(:pager)
     end
