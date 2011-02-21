@@ -122,22 +122,28 @@ module JqGrid
         option_map = {
           :searchable  => :search,
           :search_type => :stype,
-          :values      => :editoptions
+          :values      => :editoptions,
+          :default     => :searchoptions
         }
       
         options = map_keys(options, option_map)
         
         options[:name] = name.to_s
       
-        options[:title] = options[:name].capitalize \
-          if options[:name] and not options[:title]
-            
+        options[:title] = options[:name].capitalize if options[:name] && options[:title].blank?
+        
         if !options[:editoptions].blank?
           # Generate jqGrid expected value string, clear out options, store string
           values = "#{get_sub_options(options[:editoptions])}"
           options[:editoptions].clear
           options[:editoptions][:value] = values
-        end            
+        end
+
+        if !options[:searchoptions].blank?
+          default_value = options[:searchoptions].strip
+          options[:searchoptions] = {}
+          options[:searchoptions][:defaultValue] = default_value
+        end
       
         @column_headers << options.delete(:title)
         @column_names << options[:name]
