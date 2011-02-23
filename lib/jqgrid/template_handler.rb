@@ -28,6 +28,7 @@ class JQGRID < ::ActionView::TemplateHandler
     
     attr_reader :controller # used for delegate
     delegate :url_for, :to => :controller # fix for url_for problem with link_to
+    delegate :protect_against_forgery?, :to => :controller
     
     def initialize(controller)
       @controller = controller
@@ -38,7 +39,7 @@ class JQGRID < ::ActionView::TemplateHandler
     # template method
     def field(name, opts = {}, &block)
       @columns ||= {}
-      opts[:field] = name unless opts[:field]
+      opts[:field] ||= name
       @columns[name] = [process_col_opts(opts), block]
     end
     
@@ -47,7 +48,7 @@ class JQGRID < ::ActionView::TemplateHandler
       if columns = params[:columns]
         columns = columns.split(',')
       else
-        raise "No column's provided to show."
+        raise "No columns provided to show."
       end
       
       paginated_hash(columns).to_json
@@ -76,8 +77,9 @@ class JQGRID < ::ActionView::TemplateHandler
         @source = @opts[:source]
 
         build_search_conditions
+        filter_joins
         
-        @source = @source.scoped(:joins => @find_opts[:joins])
+        @source = @source.scoped(:joins => @find_opts[:joins], :include => @find_opts[:include])
 
         # calculate total pages of items
         rows_shown = params[:rows].to_i
@@ -105,7 +107,7 @@ class JQGRID < ::ActionView::TemplateHandler
 
         return unless params[:_search]
         
-        if field and op and str and col = @columns[field.to_sym]
+        if field && op && str && col = @columns[field.to_sym]
           field = col[0][:search_by_str] || col[0][:field_str]
 
           expr = "ILIKE ?"
@@ -161,7 +163,7 @@ class JQGRID < ::ActionView::TemplateHandler
       end
       
       def build_order_clause(field, order)
-        if !field.blank? and col = @columns[field.to_sym]
+        if !field.blank? && col = @columns[field.to_sym]
           order_dir = order if %w(asc desc).include? order
           
           if col[0][:order_by]
@@ -170,7 +172,7 @@ class JQGRID < ::ActionView::TemplateHandler
             order_col = col[0][:field_str] || field
           end
 
-          order_col + ' ' + order_dir if order_col and order_dir
+          "#{order_col} #{order_dir}" if order_col && order_dir
         end
       end
       
@@ -193,7 +195,7 @@ class JQGRID < ::ActionView::TemplateHandler
       # Get each field value, returning an array of the row's column values
       def item_column_values(item, columns)
         columns.map do |col|
-          column_value(item, col) or '-'
+          column_value(item, col) || '-'
         end
       end
       
@@ -224,8 +226,8 @@ class JQGRID < ::ActionView::TemplateHandler
         p = ([path] unless path.is_a? Array) || path.dup
         p.unshift(@opts[:global_method]) if @opts[:global_method]
         if p.size > 1
-          append_inc(p[0 .. p.size - 2])
-          p[0 .. p.size - 2].each do |e|
+          append_inc(p[0..-2])
+          p[0..-2].each do |e|
             ref = item.reflect_on_association(e)
             return path.to_s unless ref # failed => return original path
             item = ref.klass
@@ -246,16 +248,54 @@ class JQGRID < ::ActionView::TemplateHandler
         p = ([path] unless path.is_a? Array) || path.dup
         p.inject(item) do |item, i|
           ret = item.send(i)
-          raise "Item #{item.inspect} returned nil to method '#{i}'" unless
-            ret != nil
+          raise "Item #{item.inspect} returned nil to method '#{i}'" unless ret
           ret
         end
       end
       
       def append_inc(path)
-        @find_opts[:joins] ||= []
-        inc = path.reverse.reduce([]) {|l, r| {r => l}}
-        @find_opts[:joins] << inc unless @find_opts[:joins].include? inc
+        # has_many (and habtm) associations use includes; all other associations use joins
+        if (association_relations(path) & [ :has_many, :has_and_belongs_to_many ]).present?
+          @find_opts[:include] ||= []
+          include = path[0..-2].reverse.reduce(path[-1]) {|l, r| {r => l}}
+          @find_opts[:include] << include unless @find_opts[:include].include?(include)
+        else
+          @find_opts[:joins] ||= []
+          join = path.reverse.reduce([]) {|l, r| {r => l}}
+          @find_opts[:joins] << join unless @find_opts[:joins].include?(join)
+        end
+      end
+
+      def association_relations(path)
+        rels = []
+        for i in 0..path.length-2
+          rels << path[i].to_s.classify.constantize.reflect_on_association(path[i+1]).macro
+        end
+        rels.uniq
+      end
+
+      def filter_joins
+        # Includes should take precedence over joins. For example, given
+        #
+        #   @find_opts = {
+        #     :include => [ { :a => { :b => :c } } ],
+        #     :joins   => [ { :a => [] }, { :a => { :b => [] } } ]
+        #   }
+        #
+        # then { :a => { :b => [] } } should be discarded from @find_opts[:joins]
+        #
+        # Note: This is an ugly hack that's necessary to avoid generating invalid
+        # SQL caused by listing the same table in both a LEFT OUTER JOIN (from the
+        # include) and an INNER JOIN (from the join).
+        
+        @find_opts[:include].each do |include|
+          inc_str = include.inspect.gsub(/[{}\s]/,'')
+          @find_opts[:joins].each_with_index do |join,i|
+            join_str = join.inspect.gsub(/[{}\s]/,'').sub('=>[]','')
+            @find_opts[:joins][i] = nil if inc_str.include?(join_str)
+          end
+        end
+        @find_opts[:joins].compact!
       end
   end
   
