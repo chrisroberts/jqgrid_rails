@@ -7,7 +7,9 @@ module JqGrid
     end
   
     class Grid
-    
+
+      include ::ActionView::Helpers::JavaScriptHelper
+
       def map_keys(hash, keys)
         keys.each do |k, v|
           (hash[v] = hash.delete(k)) if hash[k] != nil
@@ -148,7 +150,7 @@ module JqGrid
       def get_sub_options(editoptions)
         options = ""
         editoptions.each do |v|
-          options << "#{v[0]}:#{v[1]};"
+          options << "#{escape_javascript(v[0].to_s)}:#{escape_javascript(v[1].to_s)};"
         end
         options.chop! << ""
       end    
