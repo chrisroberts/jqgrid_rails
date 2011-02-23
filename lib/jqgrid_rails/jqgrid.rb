@@ -1,15 +1,19 @@
 require 'jqgrid_rails/javascript_helper'
-
 module JqGridRails
   class JqGrid
+    
     include ActionView::Helpers::JavaScriptHelper
+    include ActionView::Helpers::TagHelper
     include JqGridRails::JavascriptHelper
+
     # Options used to build tables
     attr_accessor :options
     # Array of local data rows
     attr_accessor :local
     # table DOM ID
     attr_accessor :table_id
+    # Options used for links toolbar
+    attr_reader :link_toolbar_options
 
 
     # table_id:: DOM ID of table for grid to use
@@ -43,8 +47,11 @@ module JqGridRails
       @table_id = table_id.gsub('#', '')
       @options = defaults.merge(args)
       @pager_options = {:edit => false, :add => false, :del => false}
-      if(t_args = @options.delete(:toolbar))
-        enable_toolbar(t_args.is_a?(Hash) ? t_args : nil)
+      if(t_args = @options.delete(:filter_toolbar))
+        enable_filter_toolbar(t_args.is_a?(Hash) ? t_args : nil)
+      end
+      if(t_args = options.delete(:link_toolbar))
+        enable_link_toolbar(t_args.is_a?(Hash) ? t_args : nil)
       end
       @local = []
     end
@@ -84,13 +91,32 @@ module JqGridRails
         raise TypeError.new "Expecting Hash value. Received: #{ary.class}"
       end
     end
-
-    def enable_toolbar(options={})
+    
+    # options:: Options hash for the filter toolbar
+    # Enables the filter toolbar for the grid
+    def enable_filter_toolbar(options={})
       options = {} unless options.is_a?(Hash)
-      @toolbar_options = {
+      @filter_toolbar_options = {
         :string_result => true,
         :search_on_enter => true
       }.merge(options)
+    end
+
+    # options:: Options for toolbar
+    # Enables the link toolbar for the grid
+    def enable_link_toolbar(options={})
+      options = {} unless options.is_a?(Hash)
+      @link_toolbar_options = {
+        :top => true,
+        :bottom => false,
+        :links => []
+      }.merge(options)
+    end
+
+    # link:: url hash: :name, :url, :class
+    # Enables link on link toolbar
+    def link_toolbar_add(link)
+      @link_toolbar_options[:links].push(link)
     end
 
     # Builds out the jqGrid javascript and returns the string
@@ -106,21 +132,50 @@ module JqGridRails
       if(has_pager?)
         output << "jQuery(\"##{@table_id}\").jqGrid('navGrid', '##{@options[:pager]}', #{format_type_to_js(@pager_options)});"
       end
-      if(has_toolbar?)
-        output << "jQuery(\"##{@table_id}\").jqGrid('filterToolbar', #{format_type_to_js(@toolbar_options)});"
+      if(has_filter_toolbar?)
+        output << "jQuery(\"##{@table_id}\").jqGrid('filterToolbar', #{format_type_to_js(@filter_toolbar_options)});"
+      end
+      if(has_link_toolbar?)
+        @link_toolbar_options[:links].each do |url_hash|
+          output << <<-EOS
+jQuery('<a href="#" class="#{url_hash[:class]}">')
+  .text('#{escape_javascript(url_hash[:name])}')
+    .click(
+      function(){
+        var ids = jQuery('#{@options[:table_id]}').getGridParam('selarrow');
+        var str_ids = '';
+        if(!ids.length){
+          alert('Please select items from table first.');
+          return;
+        }
+        ids = jQuery.each(ids,
+          function(k,v){
+            str_ids += "&ids[]="+v
+          }
+        new Ajax.Request('#{url_for(url_hash[:url])}' + str_ids);
+      }
+    );
+
+EOS
+        end
       end
       output
     end
     alias_method :to_s, :build
 
-    # Returns if the grid has a toolbar enabled
-    def has_toolbar?
-      !@toolbar_options.empty?
+    # Returns if the grid has a filter toolbar enabled
+    def has_filter_toolbar?
+      !@filter_toolbar_options.empty?
     end
 
     # Returns if the grid has a pager enabled
     def has_pager?
       @options.has_key?(:pager)
+    end
+
+    # Returns if the grid has a link toolbar enabled
+    def has_link_toolbar?
+      !@link_toolbar_options.empty? && !@link_toolbar_options[:links].empty?
     end
 
   end
