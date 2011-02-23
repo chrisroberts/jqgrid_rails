@@ -288,7 +288,7 @@ class JQGRID < ::ActionView::TemplateHandler
         # SQL caused by listing the same table in both a LEFT OUTER JOIN (from the
         # include) and an INNER JOIN (from the join).
         
-        @find_opts[:include].each do |include|
+        @find_opts[:include].to_a.each do |include|
           inc_str = include.inspect.gsub(/[{}\s]/,'')
           @find_opts[:joins].each_with_index do |join,i|
             join_str = join.inspect.gsub(/[{}\s]/,'').sub('=>[]','')
