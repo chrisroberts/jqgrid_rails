@@ -33,7 +33,7 @@ class JQGRID < ::ActionView::TemplateHandler
     def initialize(controller)
       @controller = controller
       @opts = @controller._jqgrid_options
-      @find_opts = {}
+      @find_opts = @opts.dup || {}
     end
     
     # template method
@@ -79,7 +79,11 @@ class JQGRID < ::ActionView::TemplateHandler
         build_search_conditions
         filter_joins
         
-        @source = @source.scoped(:joins => @find_opts[:joins], :include => @find_opts[:include])
+        @source = @source.scoped(
+          :joins => @find_opts[:joins], 
+          :include => @find_opts[:include], 
+          :conditions => @source.merge_conditions(*@find_opts[:conditions])
+        )
 
         # calculate total pages of items
         rows_shown = params[:rows].to_i
