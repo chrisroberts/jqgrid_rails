@@ -136,7 +136,7 @@ module JqGrid
         
         if !options[:editoptions].blank?
           # Generate jqGrid expected value string, clear out options, store string
-          values = "#{get_sub_options(options[:editoptions])}"
+          values = options[:editoptions].dup 
           options[:editoptions].clear
           options[:editoptions][:value] = values
         end
