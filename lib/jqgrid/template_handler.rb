@@ -72,17 +72,57 @@ class JQGRID < ::ActionView::TemplateHandler
         }
       end
       
+      def smash_stuff
+        hsh = {}
+        make_hash = lambda{|thing|
+          if(thing.is_a?(Hash))
+            thing
+          else
+            Hash[*thing.to_a.zip([{}]*thing.to_a.size).flatten]
+          end
+        }
+        recursive_merger = lambda{|orig,new|
+          o = make_hash.call(orig)
+          o.merge(new){ |key,stale,fresh|
+            st = make_hash.call(stale)
+            st.merge(make_hash.call(fresh))
+          }
+        }
+        @find_opts[:include].each do |join|
+          join.each_pair do |key,val|
+            if(hsh[key])
+              hsh[key] = recursive_merger.call(hsh[key], val)
+            else
+              hsh[key] = val
+            end
+          end
+        end
+        @find_opts[:joins].each do |inc|
+          inc.each_pair do |k,val|
+            key = k.to_s.singularize.to_sym
+            if(hsh[key])
+              hsh[key] = recursive_merger.call(hsh[key], val)
+            else
+              hsh[key] = val
+            end
+          end
+        end
+        @find_opts.delete(:joins)
+        @find_opts[:include] = hsh
+      end
+
       def fetch_paginated_items(columns)
         # build conditions for find
         @source = @opts[:source]
 
         build_search_conditions
         filter_joins
-        
+        smash_stuff
+
         @source = @source.scoped(
           :joins => @find_opts[:joins], 
           :include => @find_opts[:include], 
-          :conditions => @source.merge_conditions(*@find_opts[:conditions])
+          :conditions => (@opts[:global_method].blank? ? @source : @opts[:global_method].to_s.camelize.try(:constantize)).merge_conditions(*@find_opts[:conditions])
         )
 
         # calculate total pages of items
