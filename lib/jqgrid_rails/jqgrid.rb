@@ -4,7 +4,7 @@ module JqGridRails
     
     include ActionView::Helpers::UrlHelper
     include ActionView::Helpers::JavaScriptHelper
-    include ActionView::Helpers::TagHelper
+    include ActionView::Helpers::UrlHelper
     include JqGridRails::JavascriptHelper
 
     # Options used to build tables
@@ -54,6 +54,7 @@ module JqGridRails
       if(t_args = options.delete(:link_toolbar))
         enable_link_toolbar(t_args.is_a?(Hash) ? t_args : nil)
       end
+      @options[:pager] = "#{@table_id}_pager" if @options[:pager] == true
       @local = []
     end
     
@@ -112,12 +113,13 @@ module JqGridRails
         :bottom => false,
         :links => []
       }.merge(options)
+      @options[:toolbar] = [true, 'top']
     end
 
     # link:: url hash: :name, :url, :class
     # Enables link on link toolbar
     def link_toolbar_add(link)
-      enable_link_toolbar unless @link_toolbar_options
+      enable_link_toolbar unless has_link_toolbar?
       @link_toolbar_options[:links].push(link)
     end
 
@@ -125,42 +127,47 @@ module JqGridRails
     def build
       output = ''
       @options[:datatype] = 'local' unless @local.blank?
-      output << "jQuery(\"##{@table_id}\").jqGrid(#{format_type_to_js(@options)});"
+      output << "jQuery(\"##{@table_id}\").jqGrid(#{format_type_to_js(@options)});\n"
       unless(@local.blank?)
-        output << "if(typeof(jqgrid_local_data) == 'undefined'){ var jqgrid_local_data = new Hash(); }"
-        output << "jqgrid_local_data.set('#{@table_id}', #{format_type_to_js(@local)});"
-        output << "for(var i = 0; i < jqgrid_local_data.get('#{@table_id}').length; i++){ jQuery(\"#{@table_id}\").jqGrid('addRowData', i+1, jqgrid_local_data.get('#{@table_id}')[i]); }"
+        output << "if(typeof(jqgrid_local_data) == 'undefined'){ var jqgrid_local_data = new Hash(); }\n"
+        output << "jqgrid_local_data.set('#{@table_id}', #{format_type_to_js(@local)});\n"
+        output << "for(var i = 0; i < jqgrid_local_data.get('#{@table_id}').length; i++){ jQuery(\"#{@table_id}\").jqGrid('addRowData', i+1, jqgrid_local_data.get('#{@table_id}')[i]); }\n"
       end
       if(has_pager?)
-        output << "jQuery(\"##{@table_id}\").jqGrid('navGrid', '##{@table_id}_pager', #{format_type_to_js(@pager_options)});"
+        output << "jQuery(\"##{@table_id}\").jqGrid('navGrid', '##{@options[:pager]}', #{format_type_to_js(@pager_options)});"
       end
       if(has_filter_toolbar?)
-        output << "jQuery(\"##{@table_id}\").jqGrid('filterToolbar', #{format_type_to_js(@filter_toolbar_options)});"
+        output << "jQuery(\"##{@table_id}\").jqGrid('filterToolbar', #{format_type_to_js(@filter_toolbar_options)});\n"
       end
       if(has_link_toolbar?)
         @link_toolbar_options[:links].each do |url_hash|
           output << <<-EOS
-jQuery('<a href="#" class="#{url_hash[:class]}">')
+jQuery('<div class="#{url_hash[:class]}" />')
   .text('#{escape_javascript(url_hash[:name])}')
     .click(
       function(){
-        var ids = jQuery('#{@options[:table_id]}').getGridParam('selarrow');
         var str_ids = '';
-        if(!ids.length){
+        var ary = jQuery('##{@table_id}').jqGrid('getGridParam', 'selarrrow');
+        if(!ary.length)
+          ary = new Array();
+        ary.push(jQuery('##{@table_id}').jqGrid('getGridParam', 'selrow'));
+        ary = ary.filter(function(elm){ return elm != null && elm.length });
+        if(!ary.length){
           alert('Please select items from table first.');
-          return;
+        } else {
+          jQuery.ajax({url:'#{url_hash[:url]}/?ids[]=' + ary.join('&ids[]='),dataType:'script'});
         }
-        ids = jQuery.each(ids,
+        jQuery.each(ary,
           function(k,v){
             str_ids += "&ids[]="+v
           }
         );
         new Ajax.Request('#{url_for(url_hash[:url])}' + str_ids);
       }
-    );
-
+    ).appendTo('#t_#{@table_id}');
 EOS
         end
+        output << "jQuery(\"##{@table_id}\").jqGrid('navGrid', '##{@table_id}_linkbar', {edit:false,add:false,del:false});\n"
       end
       output
     end
@@ -173,6 +180,7 @@ EOS
 
     # Returns if the grid has a pager enabled
     def has_pager?
+      @options[:pager] = "#{@table_id}_pager" if @options[:pager] == true
       @options.has_key?(:pager)
     end
 

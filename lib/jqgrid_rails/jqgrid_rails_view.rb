@@ -9,20 +9,12 @@ module JqGridRails
     # grid:: JqGrid Object
     # Writes required HTML to page for grid
     def jqgrid_html(grid)
-      output = ''
-      if(grid.has_link_toolbar? && grid.link_toolbar_options[:top])
-        output << "<div id=\"#{grid.table_id}_linkbar_container\" class=\"jqgrid_linkbar_container\">"
-        output << "<div id=\"#{grid.table_id}_linkbar}\" class=\"jqgrid_linkbar\"></div>"
-        output << "</div>"
-      end
       output = "<table id=\"#{grid.table_id}\"></table>"
-      if(grid.has_pager?)
-        output << "<div id=\"#{grid.table_id}_pager\"></div>"
+      if(grid.has_link_toolbar?)
+        output << "<div id=\"#{grid.table_id}_linkbar\" class=\"jqgrid_linkbar\"></div>"
       end
-      if(grid.has_link_toolbar? && grid.link_toolbar_options[:bottom])
-        output << "<div id=\"#{grid.table_id}_linkbar_container\" class=\"jqgrid_linkbar_container\">"
-        output << "<div id=\"#{grid.table_id}_linkbar}\" class=\"jqgrid_linkbar\"></div>"
-        output << "</div>"
+      if(grid.has_pager? && grid.options[:pager] == "#{grid.table_id}_pager")
+        output << "<div id=\"#{grid.options[:pager]}\"></div>"
       end
       output.html_safe
     end
