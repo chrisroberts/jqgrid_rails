@@ -146,7 +146,6 @@ jQuery('<div class="#{url_hash[:class]}" />')
   .text('#{escape_javascript(url_hash[:name])}')
     .click(
       function(){
-        var str_ids = '';
         var ary = jQuery('##{@table_id}').jqGrid('getGridParam', 'selarrrow');
         if(!ary.length)
           ary = new Array();
@@ -157,12 +156,6 @@ jQuery('<div class="#{url_hash[:class]}" />')
         } else {
           jQuery.ajax({url:'#{url_hash[:url]}/?ids[]=' + ary.join('&ids[]='),dataType:'script'});
         }
-        jQuery.each(ary,
-          function(k,v){
-            str_ids += "&ids[]="+v
-          }
-        );
-        new Ajax.Request('#{url_for(url_hash[:url])}' + str_ids);
       }
     ).appendTo('#t_#{@table_id}');
 EOS
