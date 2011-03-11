@@ -17,7 +17,7 @@ module JqGridRails
       end
       output = "<table id=\"#{grid.table_id}\"></table>"
       if(grid.has_pager?)
-        output << "<div id=\"#{grid.options[:pager]}\"></div>"
+        output << "<div id=\"#{grid.table_id}_pager\"></div>"
       end
       if(grid.has_link_toolbar? && grid.link_toolbar_options[:bottom])
         output << "<div id=\"#{grid.table_id}_linkbar_container\" class=\"jqgrid_linkbar_container\">"

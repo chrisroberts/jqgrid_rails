@@ -117,6 +117,7 @@ module JqGridRails
     # link:: url hash: :name, :url, :class
     # Enables link on link toolbar
     def link_toolbar_add(link)
+      enable_link_toolbar unless @link_toolbar_options
       @link_toolbar_options[:links].push(link)
     end
 
@@ -131,7 +132,7 @@ module JqGridRails
         output << "for(var i = 0; i < jqgrid_local_data.get('#{@table_id}').length; i++){ jQuery(\"#{@table_id}\").jqGrid('addRowData', i+1, jqgrid_local_data.get('#{@table_id}')[i]); }"
       end
       if(has_pager?)
-        output << "jQuery(\"##{@table_id}\").jqGrid('navGrid', '##{@options[:pager]}', #{format_type_to_js(@pager_options)});"
+        output << "jQuery(\"##{@table_id}\").jqGrid('navGrid', '##{@table_id}_pager', #{format_type_to_js(@pager_options)});"
       end
       if(has_filter_toolbar?)
         output << "jQuery(\"##{@table_id}\").jqGrid('filterToolbar', #{format_type_to_js(@filter_toolbar_options)});"
@@ -153,6 +154,7 @@ jQuery('<a href="#" class="#{url_hash[:class]}">')
           function(k,v){
             str_ids += "&ids[]="+v
           }
+        );
         new Ajax.Request('#{url_for(url_hash[:url])}' + str_ids);
       }
     );
@@ -176,7 +178,7 @@ EOS
 
     # Returns if the grid has a link toolbar enabled
     def has_link_toolbar?
-      !@link_toolbar_options.empty? && !@link_toolbar_options[:links].empty?
+      !@link_toolbar_options.blank? && !@link_toolbar_options[:links].empty?
     end
 
   end
