@@ -2,6 +2,7 @@ require 'jqgrid_rails/javascript_helper'
 module JqGridRails
   class JqGrid
     
+    include ActionView::Helpers::UrlHelper
     include ActionView::Helpers::JavaScriptHelper
     include ActionView::Helpers::TagHelper
     include JqGridRails::JavascriptHelper
