@@ -88,7 +88,7 @@ class JQGRID < ::ActionView::TemplateHandler
             st.merge(make_hash.call(fresh))
           }
         }
-        @find_opts[:include].each do |join|
+        @find_opts[:include].to_a.each do |join|
           join.each_pair do |key,val|
             if(hsh[key])
               hsh[key] = recursive_merger.call(hsh[key], val)
@@ -97,7 +97,7 @@ class JQGRID < ::ActionView::TemplateHandler
             end
           end
         end
-        @find_opts[:joins].each do |inc|
+        @find_opts[:joins].to_a.each do |inc|
           inc.each_pair do |k,val|
             key = k.to_s.singularize.to_sym
             if(hsh[key])
