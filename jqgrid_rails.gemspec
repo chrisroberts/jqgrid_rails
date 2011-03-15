@@ -12,5 +12,5 @@ Gem::Specification.new do |s|
   s.has_rdoc = true
   s.extra_rdoc_files = ['README.rdoc', 'LICENSE.rdoc', 'CHANGELOG.rdoc']
   s.add_dependency 'rails', '>= 2.3'
-  s.files = %w(README.rdoc CHANGELOG.rdoc init.rb) + Dir.glob("{app,files,lib,rails}/**/*")
+  s.files = %w(README.rdoc CHANGELOG.rdoc) + Dir.glob("{app,files,lib,rails}/**/*")
 end
