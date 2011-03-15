@@ -13,8 +13,8 @@ module JqGridRails
       ActionView::Helpers::AssetTagHelper.register_stylesheet_expansion(
         :plugins => %w(ui.jqgrid.css)
       )
-      Dir.glob('*.rb').each do |file|
-        unless(file.starts_with?('engine') || file.starts_with?('task'))
+      Dir.glob(File.join(File.dirname(__FILE__), '*.rb')).each do |file|
+        unless(file.ends_with?('railtie.rb') || file.ends_with?('tasks.rb'))
           require file
         end
       end
