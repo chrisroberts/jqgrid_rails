@@ -7,3 +7,5 @@ module JqGridRails
 
   end 
 end
+
+ActionView::Helpers::PrototypeHelper::JavaScriptGenerator::GeneratorMethods.send :include, JqGridRails::Generators

@@ -34,3 +34,5 @@ module JqGridRails
     end
   end 
 end
+
+ActionView::Base.send :include, JqGridRails::View

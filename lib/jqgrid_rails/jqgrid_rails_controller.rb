@@ -143,3 +143,5 @@ module JqGridRails
     end
   end
 end
+
+ActionController::Base.send :include, JqGridRails::Controller
