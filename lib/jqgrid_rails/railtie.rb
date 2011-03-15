@@ -1,5 +1,5 @@
 module JqGridRails
-  class Engine < Rails::Engine
+  class Railtie < Rails::Railtie
 
     rake_tasks do
       require 'jqgrid_rails/tasks'
