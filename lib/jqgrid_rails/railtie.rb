@@ -8,13 +8,13 @@ module JqGridRails
     # We do all our setup in here
     config.to_prepare do
       ActionView::Helpers::AssetTagHelper.register_javascript_expansion(
-        :plugins => %w(/jqgrid_rails/javascripts/grid.locale-en.js /jqgrid_rails/javascripts/jquery.jqGrid.min.js)
+        :plugins => %w(/jqgrid_rails/javascripts/jqgrid/grid.locale-en.js /jqgrid_rails/javascripts/jqgrid/jquery.jqGrid.min.js)
       )
       ActionView::Helpers::AssetTagHelper.register_stylesheet_expansion(
-        :plugins => %w(ui.jqgrid.css)
+        :plugins => %w(/jqgrid_rails/stylesheets/jqgrid/ui.jqgrid.css)
       )
       Dir.glob(File.join(File.dirname(__FILE__), '*.rb')).each do |file|
-        unless(file.ends_with?('railtie.rb') || file.ends_with?('tasks.rb'))
+        unless(%w(railtie.rb tasks.rb version.rb).find{|skip| file.ends_with?(skip))
           require file
         end
       end
