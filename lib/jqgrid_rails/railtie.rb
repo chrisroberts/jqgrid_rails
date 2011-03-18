@@ -14,7 +14,7 @@ module JqGridRails
         :plugins => %w(/jqgrid_rails/stylesheets/jqgrid/ui.jqgrid.css)
       )
       Dir.glob(File.join(File.dirname(__FILE__), '*.rb')).each do |file|
-        unless(%w(railtie.rb tasks.rb version.rb).find{|skip| file.ends_with?(skip))
+        unless(%w(railtie.rb tasks.rb version.rb).find{|skip| file.ends_with?(skip)})
           require file
         end
       end
