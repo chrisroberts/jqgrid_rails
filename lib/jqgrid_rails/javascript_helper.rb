@@ -8,7 +8,7 @@ module JqGridRails
           "[#{arg.map{|value| format_type_to_js(value)}.join(',')}]"
         when Hash
           "{#{arg.map{ |key, value|
-            k = key.is_a?(Symbol) ? key.to_s.camelize.sub(/^./, key.to_s[0,1].downcase) : key.to_s
+            k = key.is_a?(Symbol) ? key.to_s.camelize.sub(/^./, key.to_s[0,1].downcase) : "'#{key}'"
             "#{k}:#{format_type_to_js(value)}"
           }.join(',')}}"
         when Fixnum
