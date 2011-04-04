@@ -28,7 +28,7 @@ module JqGridRails
     #          attribute and value being the reference used within the grid
     # Provides generic JSON response for jqGrid requests (sorting/searching)
     def grid_response(klass, params, fields)
-      unless((klass.is_a?(Class) && klass.ancestors.include?(ActiveRecord::Base)) || klass.is_a?(ActiveRecord::Relation))
+      unless((klass.is_a?(Class) && klass.ancestors.include?(ActiveRecord::Base)) || (defined?(ActiveRecord::Relation) && klass.is_a?(ActiveRecord::Relation)))
         raise TypeError.new "Unexpected type received. Allowed types are Class or ActiveRecord::Relation. Received: #{klass.class.name}"
       end
       rel = apply_sorting(klass, params, fields)
@@ -60,7 +60,7 @@ module JqGridRails
     # fields:: Fields used within grid
     # Applies any sorting to result set
     def apply_sorting(klass, params, fields)
-      sort_col = params[[:sidx, :searchField].find{|sym| !params[:sym].blank?}]
+      sort_col = params[[:sidx, :searchField].find{|sym| !params[sym].blank?}]
       unless(sort_col)
         begin
           sort_col = discover_field(sort_col, fields)
@@ -72,7 +72,11 @@ module JqGridRails
         sort_col = fields.is_a?(Array) ? fields.first : fields.keys.first
       end
       sort_ord = params[:sord] == 'asc' ? 'ASC' : 'DESC'
-      klass.order("#{klass.table_name}.#{sort_col} #{sort_ord}")
+      if(defined?(ActiveRecord::Relation) && klass.is_a?(ActiveRecord::Relation))
+        klass.order("#{klass.table_name}.#{sort_col} #{sort_ord}")
+      else
+        klass.scoped(:order => "#{klass.table_name}.#{sort_col} #{sort_ord}")
+      end
     end
     
     # klass:: ActiveRecord::Base class or ActiveRecord::Relation
@@ -85,10 +89,19 @@ module JqGridRails
         search_oper = params[:searchOper]
         search_string = params[:searchString]
         raise ArgumentError.new("Invalid search operator received: #{search_oper}") unless SEARCH_OPERS.keys.include?(search_oper)
-        klass.where([
-          "#{search_field} #{SEARCH_OPERS[search_oper].first}",
-          SEARCH_OPERS[search_oper].last.call(search_string)
-        ])
+        if(defined?(ActiveRecord::Relation) && klass.is_a?(ActiveRecord::Relation))
+          klass.where([
+            "#{search_field} #{SEARCH_OPERS[search_oper].first}",
+            SEARCH_OPERS[search_oper].last.call(search_string)
+          ])
+        else
+          klass.scoped(
+            :conditions => [
+              "#{search_field} #{SEARCH_OPERS[search_oper].first}",
+              SEARCH_OPERS[search_oper].last.call(search_string)
+            ]
+          )
+        end
       else
         klass
       end
@@ -110,10 +123,19 @@ module JqGridRails
           oper = filter['op']
           raise ArgumentError.new("Invalid search operator received: #{oper}") unless SEARCH_OPERS.keys.include?(oper)
           data = filter['data']
-          rel = rel.where([
-            "#{field} #{SEARCH_OPERS[oper].first}",
-            SEARCH_OPERS[oper].last.call(data)
-          ])
+          if(defined?(ActiveRecord::Relation) && rel.is_a?(ActiveRecord::Relation))
+            rel = rel.where([
+              "#{field} #{SEARCH_OPERS[oper].first}",
+              SEARCH_OPERS[oper].last.call(data)
+            ])
+          else
+            rel = rel.scoped(
+              :conditions => [
+                "#{field} #{SEARCH_OPERS[oper].first}",
+                SEARCH_OPERS[oper].last.call(data)
+              ]
+            )
+          end
         end
       end
       rel
