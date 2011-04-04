@@ -1,0 +1,1 @@
+require 'jqgrid_rails'
