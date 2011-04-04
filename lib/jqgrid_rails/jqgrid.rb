@@ -56,6 +56,7 @@ module JqGridRails
       end
       @options[:pager] = "#{@table_id}_pager" if @options[:pager] == true
       @local = []
+      @output = ''
     end
     
     # name:: Name of column (Invoice)
@@ -70,8 +71,11 @@ module JqGridRails
     #   :editable::
     def add_column(name, attr, args={})
       col = {:name => attr, :index => attr}.merge(args)
+      map = col.delete(:map_values)
+      col[:formatter] = add_value_mapper(map) if map
       @options[:col_names].push name
       @options[:col_model].push col
+      self
     end
 
     # ary:: Array of Hashes (rows in table)
@@ -82,6 +86,7 @@ module JqGridRails
       else
         raise TypeError.new "Expecting Array value. Received: #{ary.class}"
       end
+      self
     end
 
     # hsh:: Hash of row data for loading into table
@@ -92,6 +97,7 @@ module JqGridRails
       else
         raise TypeError.new "Expecting Hash value. Received: #{ary.class}"
       end
+      self
     end
     
     # options:: Options hash for the filter toolbar
@@ -102,6 +108,7 @@ module JqGridRails
         :string_result => true,
         :search_on_enter => true
       }.merge(options)
+      self
     end
 
     # options:: Options for toolbar
@@ -114,6 +121,7 @@ module JqGridRails
         :links => []
       }.merge(options)
       @options[:toolbar] = [true, 'top']
+      self
     end
 
     # link:: url hash: :name, :url, :class
@@ -121,6 +129,7 @@ module JqGridRails
     def link_toolbar_add(link)
       enable_link_toolbar unless has_link_toolbar?
       @link_toolbar_options[:links].push(link)
+      self
     end
 
     # Builds out the jqGrid javascript and returns the string
@@ -151,10 +160,15 @@ jQuery('<div class="#{url_hash[:class]}" />')
           ary = new Array();
         ary.push(jQuery('##{@table_id}').jqGrid('getGridParam', 'selrow'));
         ary = ary.filter(function(elm){ return elm != null && elm.length });
-        if(!ary.length){
+        if(!ary.length && #{format_type_to_js(!url_hash[:single])}){
           alert('Please select items from table first.');
         } else {
-          jQuery.ajax({url:'#{url_hash[:url]}/?ids[]=' + ary.join('&ids[]='),dataType:'script'});
+          if(!ary.length){
+            window.location = '#{url_hash[:url]}/';
+          }
+          else{
+            window.location = '#{url_hash[:url]}/?ids[]=' + ary.join('&ids[]=');
+          }
         }
       }
     ).appendTo('#t_#{@table_id}');
@@ -162,7 +176,7 @@ EOS
         end
         output << "jQuery(\"##{@table_id}\").jqGrid('navGrid', '##{@table_id}_linkbar', {edit:false,add:false,del:false});\n"
       end
-      output
+      "#{@output}\n#{output}"
     end
     alias_method :to_s, :build
 
@@ -180,6 +194,16 @@ EOS
     # Returns if the grid has a link toolbar enabled
     def has_link_toolbar?
       !@link_toolbar_options.blank? && !@link_toolbar_options[:links].empty?
+    end
+
+    def add_value_mapper(map)
+      function_name = "map_#{Digest::SHA1.hexdigest(Time.now.to_f.to_s)}"
+      @output << "jQuery.extend(jQuery.fn.fmatter, {
+        #{function_name} : function(cellvalue, options, rowdata){
+          return #{format_type_to_js(map)}[cellvalue];
+        }
+      });"
+      function_name
     end
 
   end
