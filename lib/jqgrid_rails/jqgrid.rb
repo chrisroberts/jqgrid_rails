@@ -151,7 +151,7 @@ module JqGridRails
       if(has_link_toolbar?)
         @link_toolbar_options[:links].each do |url_hash|
           output << <<-EOS
-jQuery('<div class="#{url_hash[:class]}" />')
+jQuery('<div class="#{url_hash[:class] || 'grid_toolbar_item'}" />')
   .text('#{escape_javascript(url_hash[:name])}')
     .click(
       function(){
@@ -164,10 +164,22 @@ jQuery('<div class="#{url_hash[:class]}" />')
           alert('Please select items from table first.');
         } else {
           if(!ary.length){
-            window.location = '#{url_hash[:url]}/';
+            #{
+              if(url_hash[:remote])
+                "jQuery.get('#{url_hash[:url]}');"
+              else
+                "window.location = '#{url_hash[:url]}/';"
+              end
+            }
           }
           else{
-            window.location = '#{url_hash[:url]}/?ids[]=' + ary.join('&ids[]=');
+            #{
+              if(url_hash[:remote])
+                "jQuery.get('#{url_hash[:url]}/?ids[]=' + ary.join('&ids[]='));"
+              else
+                "window.location = '#{url_hash[:url]}/?ids[]=' + ary.join('&ids[]=');"
+              end
+            }
           }
         }
       }
