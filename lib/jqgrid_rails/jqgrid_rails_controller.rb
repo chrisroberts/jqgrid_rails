@@ -5,7 +5,7 @@ module JqGridRails
     # and the database translations for them. We use closures
     # for the value so we can modify the string if we see fit
     SEARCH_OPERS = {
-      'eq' => ['= ?', lambda{|v| v}],
+      'eq' => ['= ?', lambda{|v|v}],
       'ne' => ['!= ?', lambda{|v|v}],
       'lt' => ['< ?', lambda{|v|v}],
       'le' => ['<= ?', lambda{|v|v}],
@@ -28,7 +28,8 @@ module JqGridRails
     #          attribute and value being the reference used within the grid
     # Provides generic JSON response for jqGrid requests (sorting/searching)
     def grid_response(klass, params, fields)
-      unless((klass.is_a?(Class) && klass.ancestors.include?(ActiveRecord::Base)) || (defined?(ActiveRecord::Relation) && klass.is_a?(ActiveRecord::Relation)))
+      allowed_consts = %w(ActiveRecord::Base ActiveRecord::Relation ActiveRecord::NamedScope::Scope)
+      unless(allowed_consts.detect{|const| klass.ancestors.detect{|c| c.to_s == const}})
         raise TypeError.new "Unexpected type received. Allowed types are Class or ActiveRecord::Relation. Received: #{klass.class.name}"
       end
       rel = apply_sorting(klass, params, fields)
@@ -155,9 +156,7 @@ module JqGridRails
       res['rows'] = dbres.map do |row|
         hsh = {}
         calls.each do |method|
-          if(row.respond_to?(method.to_sym))
-            hsh[maps ? maps[method] : method] = row.send(method.to_sym).to_s
-          end
+          hsh[maps ? maps[method] : method] = method.to_s.split('.').inject(row){|result,meth| result.try(:respond_to?, meth) ? result.send(meth) : nil}
         end
         hsh
       end
