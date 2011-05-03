@@ -194,7 +194,7 @@ EOS
 
     # Returns if the grid has a filter toolbar enabled
     def has_filter_toolbar?
-      !@filter_toolbar_options.empty?
+      !@filter_toolbar_options.blank?
     end
 
     # Returns if the grid has a pager enabled
