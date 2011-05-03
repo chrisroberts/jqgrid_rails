@@ -1,3 +1,4 @@
+require 'jqgrid_rails/jqgrid_url_generator'
 require 'jqgrid_rails/javascript_helper'
 module JqGridRails
   class JqGrid
@@ -136,6 +137,8 @@ module JqGridRails
     def build
       output = ''
       @options[:datatype] = 'local' unless @local.blank?
+      map_double_click
+      map_single_click
       output << "jQuery(\"##{@table_id}\").jqGrid(#{format_type_to_js(@options)});\n"
       unless(@local.blank?)
         output << "if(typeof(jqgrid_local_data) == 'undefined'){ var jqgrid_local_data = new Hash(); }\n"
@@ -148,6 +151,7 @@ module JqGridRails
       if(has_filter_toolbar?)
         output << "jQuery(\"##{@table_id}\").jqGrid('filterToolbar', #{format_type_to_js(@filter_toolbar_options)});\n"
       end
+
       if(has_link_toolbar?)
         @link_toolbar_options[:links].each do |url_hash|
           output << <<-EOS
@@ -218,5 +222,23 @@ EOS
       function_name
     end
 
+    def map_click(key)
+      if(@options[key].is_a?(Hash))
+        @@url_gen ||= JqGridRails::UrlGenerator.new
+        if(@options[key][:remote])
+          @options[key] = "function(id){ jQuery.get('#{@@url_gen.send(@options[key][:url], '!!')}'.replace('!!', id)) + '#{@options[key][:suffix]}'; }"
+        else
+          @options[key] = "function(id){ window.location = '#{@@url_gen.send(@options[key][:url], '!!')}'.replace('!!', id) + '#{@options[key][:suffix]}'; }"
+        end
+      end
+    end
+
+    def map_double_click
+      map_click(:ondbl_click_row)
+    end
+
+    def map_single_click
+      map_click(:on_cell_select)
+    end
   end
 end
