@@ -1,0 +1,39 @@
+= JqGridRails
+
+Providing easy ways to build grids within Rails
+
+== About
+
+JqGridRails is a helper plugin to build grids using {jqGrid}[http://www.trirand.com/blog/]. It provides a number of features to allow a minimal amount of effort to build grids. However, it is also built with the maximum amount of flexibility in mind. As such, it provides easy access to all the capabilities jqGrid has to offer and allows the application to choose how much support is automatically provided.
+
+== Installation
+
+=== RubyGems
+
+Add JqGridRails to your applications Gemfile:
+
+  gem 'jqgrid_rails'
+
+Or, if you want the bleeding edge, point to the repository:
+
+  gem 'jqgrid_rails', :git => 'git@github.com/ctisol/jqgrid_rails.git'
+
+=== Setup
+
+If you are in Rails 2, add the tasks to the bottom of your Rakefile (not needed for Rails 3):
+
+  require 'jqgrid_rails/tasks'
+
+And run the install task:
+
+  rake jqgrid_rails:install
+
+== Building grids
+
+== Resources
+
+* {jqGrid}[http://www.trirand.com/blog/]
+* {jqGrid Wiki}[http://www.trirand.com/jqgridwiki/doku.php?id=start]
+* {jqGrid Options}[http://www.trirand.com/jqgridwiki/doku.php?id=wiki:options]
+* {jqGrid Events}[http://www.trirand.com/jqgridwiki/doku.php?id=wiki:events]
+* {jqGrid ColModel Options}[http://www.trirand.com/jqgridwiki/doku.php?id=wiki:colmodel_options]
