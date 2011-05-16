@@ -1,0 +1,113 @@
+= Basic Grid Building
+
+== Building the grid
+
+First we need to build the grid. In our controller, we build the grid object. 
+
+  # app/controllers/grids_controller.rb
+  class GridsController < ApplicationController
+    def show
+      respond_to do |format|
+        format.html do
+          @grid = JqGridRails::Grid.new('test_grid',
+            :url => grids_url,
+            :height => '100%',
+            :width => 300,
+            :caption => 'Test',
+            :pager => true,
+            :row_num => 10,
+            :autowidth => true
+          )
+          @grid.add_column('Name', 'name')
+        end
+      end
+    end
+  end
+
+And we need our basic view:
+
+  # app/controllers/grids/show.html.erb
+  <div class="title">Grid Test</div>
+  <%= jqgrid(@grid) %>
+
+This will now build a jqGrid on the grids show page. The #jqgrid method is added to the ActionView helper methods and will output the required HTML and javascript to display the grid. Lets look more closely at the creation of the grid object.
+
+The first parameter of the Grid initializer is the DOM ID for the grid. This is important if you are displaying multiple grids on the same page. While it will work displaying multiple grids with the same DOM ID, the functionality is undefined and things will break. In most cases, any actions taking on the grid will only affect the grid that is defined first within the DOM.
+
+The second parameter for the Grid initializer is a Hash of options for the grid. A full list of available options can be found on the [jqGrid options wiki page]{http://www.trirand.com/jqgridwiki/doku.php?id=wiki:options}. Looking at the options page, you will notice that the options defined there look slightly different. This is because the Grid object will format the options when building the grid for writing. There are a few key points to remember. 
+
+* Option keys can be defined in symbol or string form. 
+  * Symbols will be mapped like so:
+    :row_num => 10 -> rowNum : 10
+    :rowNum => 10 -> rowNum : 10
+  * Strings will be mapped directly:
+    'rowNum' => 10 -> 'rowNum' : 10
+* Type matters!
+  * Symbols will be written as literals in JavaScript
+  * Strings will be written as string with their content escaped
+    * Functions are a special case. Strings begining with 'function ' will be written as is with no escaping
+  * Booleans and Fixnums will be converted to the proper Javascript type
+* Nesting is allowed (and encouraged)
+
+The last point is key. Many options with jqGrid are defined upon initialization through nested Hashes or Arrays. JqGridRails will properly convert these nested options from Ruby to JavaScript.
+
+=== Populating the grid
+
+At this point the grid is building on the page, but it is not being populated. This is because the grid is attempting to request the data from the #show method. Two options exist for providing this data. The actual data structure can be built, #to_json called and the value returned, or the #grid_response method can be used. Since this is a basic grid, we will use the #grid_response. So, lets expand the #show method we already defined:
+
+
+  # app/controllers/grids_controller.rb
+  class GridsController < ApplicationController
+    def show
+      respond_to do |format|
+        format.html do
+          @grid = JqGridRails::Grid.new('test_grid',
+            :url => grids_url,
+            :height => '100%',
+            :width => 300,
+            :caption => 'Test',
+            :pager => true,
+            :row_num => 10,
+            :autowidth => true
+          )
+          @grid.add_column('Name', 'name')
+        end
+        format.json do
+          grid_response(Grid, params, ['name'])
+        end
+      end
+    end
+  end
+
+The #grid_response method will use the request parameters to build the proper response. It will provide the result properly paginated and sorted based on the user request. The first parameter for the grid_response must be an ActiveRecord::Base, ActiveRecord::Relationor and ActiveRecord::NamedScope::Scope. The second parameter are the parameters provided to via the request. And the third parameter is an Array or Hash of information related to the columns. Lets start by taking a closer look at the first paramter.
+
+The first parameter is what we are actually querying against. For simple tables (as is this case), simply providing the class is all that will be required. The #grid_response method will properly paginate and order the results based on user requests. However, there are times where eager loading may be required, or conditions need to be provided. To provide this functionality, the grid_response can take an ActiveRecord::NamedScope::Scope (in Rails 3 using arel, everything is an ActiveRecord::Relation). So, lets say that our Grid model belongs to a Table model with a 'title' attribute and lets further say that we only want to show grid's with the table title of 'My Grid'. Scoping makes this possible. Now, our #show method looks like this:
+
+
+  # app/controllers/grids_controller.rb
+  class GridsController < ApplicationController
+    def show
+      respond_to do |format|
+        format.html do
+          @grid = JqGridRails::Grid.new('test_grid',
+            :url => grids_url,
+            :height => '100%',
+            :width => 300,
+            :caption => 'Test',
+            :pager => true,
+            :row_num => 10,
+            :autowidth => true
+          )
+          @grid.add_column('Name', 'name')
+        end
+        format.json do
+          grid_response(
+            Grid.scoped(
+              :include => :table, 
+              :conditions => {"#{Table.table_name}.title" => 'My Grid'}
+            ), params, ['name']
+          )
+        end
+      end
+    end
+  end
