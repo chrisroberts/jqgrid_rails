@@ -19,7 +19,7 @@ module JqGridRails
 
 
     # table_id:: DOM ID of table for grid to use
-    # args:: Hash of [jqGrid options]{http://www.trirand.com/jqgridwiki/doku.php?id=wiki:options}
+    # args:: Hash of {jqGrid options}[http://www.trirand.com/jqgridwiki/doku.php?id=wiki:options]
     def initialize(table_id, args={})
       defaults = {
         :datatype => :json,
@@ -54,7 +54,7 @@ module JqGridRails
     
     # name:: Name of column (Invoice)
     # attr:: Attribute of model (invoice_num)
-    # args:: Hash of [colModel options]{http://www.trirand.com/jqgridwiki/doku.php?id=wiki:colmodel_options}
+    # args:: Hash of {colModel options}[http://www.trirand.com/jqgridwiki/doku.php?id=wiki:colmodel_options]
     def add_column(name, attr, args={})
       col = {:name => attr, :index => attr}.merge(args)
       map = col.delete(:map_values)
