@@ -104,7 +104,7 @@ module JqGridRails
         end
       end
       unless(sort_col)
-        sort_col = (fields.try(:keys) || fields).first
+        sort_col = (fields.is_a?(Hash) ? fields.keys : fields).first
       end
       sorter = discover_sorter(klass, sort_col, fields)
       sort_ord = params[:sord] == 'asc' ? 'ASC' : 'DESC'
