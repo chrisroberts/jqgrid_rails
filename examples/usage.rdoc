@@ -1,4 +1,4 @@
-= Basic Grid Building
+= JqGridRails Usage
 
 == Building the grid
 
@@ -34,14 +34,20 @@ This will now build a jqGrid on the grids show page. The #jqgrid method is added
 
 The first parameter of the Grid initializer is the DOM ID for the grid. This is important if you are displaying multiple grids on the same page. While it will work displaying multiple grids with the same DOM ID, the functionality is undefined and things will break. In most cases, any actions taking on the grid will only affect the grid that is defined first within the DOM.
 
+=== Options Hash
+
 The second parameter for the Grid initializer is a Hash of options for the grid. A full list of available options can be found on the [jqGrid options wiki page]{http://www.trirand.com/jqgridwiki/doku.php?id=wiki:options}. Looking at the options page, you will notice that the options defined there look slightly different. This is because the Grid object will format the options when building the grid for writing. There are a few key points to remember. 
 
 * Option keys can be defined in symbol or string form. 
   * Symbols will be mapped like so:
-    :row_num => 10 -> rowNum : 10
-    :rowNum => 10 -> rowNum : 10
+
+      :row_num => 10 -> rowNum : 10
+      :rowNum => 10 -> rowNum : 10
+
   * Strings will be mapped directly:
-    'rowNum' => 10 -> 'rowNum' : 10
+
+      'rowNum' => 10 -> 'rowNum' : 10
+
 * Type matters!
   * Symbols will be written as literals in JavaScript
   * Strings will be written as string with their content escaped
@@ -80,6 +86,8 @@ At this point the grid is building on the page, but it is not being populated. T
   end
 
 The #grid_response method will use the request parameters to build the proper response. It will provide the result properly paginated and sorted based on the user request. The first parameter for the grid_response must be an ActiveRecord::Base, ActiveRecord::Relationor and ActiveRecord::NamedScope::Scope. The second parameter are the parameters provided to via the request. And the third parameter is an Array or Hash of information related to the columns. Lets start by taking a closer look at the first paramter.
+
+=== Scoping
 
 The first parameter is what we are actually querying against. For simple tables (as is this case), simply providing the class is all that will be required. The #grid_response method will properly paginate and order the results based on user requests. However, there are times where eager loading may be required, or conditions need to be provided. To provide this functionality, the grid_response can take an ActiveRecord::NamedScope::Scope (in Rails 3 using arel, everything is an ActiveRecord::Relation). So, lets say that our Grid model belongs to a Table model with a 'title' attribute and lets further say that we only want to show grid's with the table title of 'My Grid'. Scoping makes this possible. Now, our #show method looks like this:
 
