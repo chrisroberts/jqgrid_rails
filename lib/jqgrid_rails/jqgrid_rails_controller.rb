@@ -27,15 +27,31 @@ module JqGridRails
     #          names or a Hash mapping with the key being the model 
     #          attribute and value being the reference used within the grid
     # Provides generic JSON response for jqGrid requests (sorting/searching)
+    # Array: [col1, col2, col3]
+    # Hash: {'grid.name' => {:formatter => lambda{|x| x.upcase}, :sorter => 'model_table.name'}}
+
+
     def grid_response(klass, params, fields)
       allowed_consts = %w(ActiveRecord::Base ActiveRecord::Relation ActiveRecord::NamedScope::Scope)
       unless(allowed_consts.detect{|const| klass.ancestors.detect{|c| c.to_s == const}})
         raise TypeError.new "Unexpected type received. Allowed types are Class or ActiveRecord::Relation. Received: #{klass.class.name}"
       end
-      rel = apply_sorting(klass, params, fields)
-      rel = apply_searching(rel, params, fields)
-      rel = apply_filtering(rel, params, fields)
-      hash = create_result_hash(rel, fields)
+      clean_fields = nil
+      if(fields.is_a?(Hash))
+        clean_fields = {}
+        fields.each_pair do |k,v|
+          clean_fields[k.to_s] = v.nil? ? {} : v
+        end
+      else
+        clean_fields = fields
+      end
+      if(clean_fields.is_a?(Hash))
+        raise TypeError.new 'Hash values must be of Hash type or nil' if fields.values.detect{|v| !v.is_a?(Hash)}
+      end
+      rel = apply_sorting(klass, params, clean_fields)
+      rel = apply_searching(rel, params, clean_fields)
+      rel = apply_filtering(rel, params, clean_fields)
+      hash = create_result_hash(rel, clean_fields)
       hash.to_json
     end
 
@@ -46,7 +62,7 @@ module JqGridRails
       col = nil
       case fields
         when Hash
-          col = fields.detect{|k,v| v.to_s == given}.try(:first)
+          col = fields.keys.detect{|key| key.to_s == given}
         when Array
           col = given if fields.map(&:to_s).include?(given)
         else
@@ -54,6 +70,24 @@ module JqGridRails
       end
       raise NameError.new "Requested field was not found in provided fields list. Given: #{given}" unless col
       col
+    end
+
+    # klass:: ActiveRecord::Base class or ActiveRecord::Relation
+    # col:: Sort column
+    # fields:: Aray or Hash map of fields
+    # Returns proper sorter based on inference or user defined
+    def discover_sorter(klass, col, fields)
+      if(fields.is_a?(Hash) && fields[col][:order].present?)
+        fields[col][:order]
+      else
+        parts = col.split('.')
+        if(parts.size > 1)
+          parts = parts[-2,2]
+          "#{parts.first.pluralize}.#{parts.last}"
+        else
+          "#{klass.table_name}.#{parts.first}"
+        end
+      end
     end
 
     # klass:: ActiveRecord::Base class or ActiveRecord::Relation
@@ -70,13 +104,14 @@ module JqGridRails
         end
       end
       unless(sort_col)
-        sort_col = fields.is_a?(Array) ? fields.first : fields.keys.first
+        sort_col = (fields.try(:keys) || fields).first
       end
+      sorter = discover_sorter(klass, sort_col, fields)
       sort_ord = params[:sord] == 'asc' ? 'ASC' : 'DESC'
       if(defined?(ActiveRecord::Relation) && klass.is_a?(ActiveRecord::Relation))
-        klass.order("#{klass.table_name}.#{sort_col} #{sort_ord}")
+        klass.order("#{sorter} #{sort_ord}")
       else
-        klass.scoped(:order => "#{klass.table_name}.#{sort_col} #{sort_ord}")
+        klass.scoped(:order => "#{sorter} #{sort_ord}")
       end
     end
     
@@ -156,7 +191,17 @@ module JqGridRails
       res['rows'] = dbres.map do |row|
         hsh = {}
         calls.each do |method|
-          hsh[maps ? maps[method] : method] = method.to_s.split('.').inject(row){|result,meth| result.try(:respond_to?, meth) ? result.send(meth) : nil}
+          value = method.to_s.split('.').inject(row) do |result,meth|
+            if(result.try(:respond_to?, meth))
+              result.send(meth)
+            else
+              nil
+            end
+          end
+          if(fields.is_a?(Hash) && fields[method][:formatter].is_a?(Proc))
+            value = fields[method][:formatter].call(value)
+          end
+          hsh[method] = value
         end
         hsh
       end
