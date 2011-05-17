@@ -235,7 +235,7 @@ jQuery('<div class="#{(classes + url_hash[:class].to_a).compact.join(' ')}" />')
           else{
             #{
               if(url_hash[:remote])
-                "jQuery.post(
+                "jQuery.get(
                    '#{url_hash[:url]}',
                    {'ids[]' :  ary}
                  )"
