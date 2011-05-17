@@ -5,6 +5,11 @@ module JqGridRails
       self << grid.build
     end
 
+    def reload_grid(dom_id)
+      dom_id = "##{dom_id}" unless dom_id.start_with?('#')
+      self << "jQuery('#{dom_id}').trigger('reloadGrid');"
+    end
+
   end 
 end
 
