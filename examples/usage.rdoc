@@ -36,7 +36,7 @@ The first parameter of the Grid initializer is the DOM ID for the grid. This is 
 
 === Options Hash
 
-The second parameter for the Grid initializer is a Hash of options for the grid. A full list of available options can be found on the [jqGrid options wiki page]{http://www.trirand.com/jqgridwiki/doku.php?id=wiki:options}. Looking at the options page, you will notice that the options defined there look slightly different. This is because the Grid object will format the options when building the grid for writing. There are a few key points to remember. 
+The second parameter for the Grid initializer is a Hash of options for the grid. A full list of available options can be found on the {jqGrid options wiki page}[http://www.trirand.com/jqgridwiki/doku.php?id=wiki:options]. Looking at the options page, you will notice that the options defined there look slightly different. This is because the Grid object will format the options when building the grid for writing. There are a few key points to remember. 
 
 * Option keys can be defined in symbol or string form. 
   * Symbols will be mapped like so:
