@@ -19,15 +19,7 @@ module JqGridRails
 
 
     # table_id:: DOM ID of table for grid to use
-    # args:: Hash of grid options
-    #   :url:: URL to query against (*required unless datatype is local)
-    #   :datatype:: local/json/xml
-    #   :row_id:: This is used by the JSON Reader as the unique ID for a row. By
-    #             default this is the first column of the table. This can set it
-    #             to any other column. For example, instead of looking up users
-    #             by ID and including that information in the table, we can use
-    #             username instead: :row_id => :username
-    #   Exhaustive list: http://www.trirand.com/jqgridwiki/doku.php?id=wiki:options
+    # args:: Hash of [jqGrid options]{http://www.trirand.com/jqgridwiki/doku.php?id=wiki:options}
     def initialize(table_id, args={})
       defaults = {
         :datatype => :json,
@@ -62,14 +54,7 @@ module JqGridRails
     
     # name:: Name of column (Invoice)
     # attr:: Attribute of model (invoice_num)
-    # args:: Argument hash (anything valid within jqgrid column hash)
-    #   :name::
-    #   :index::
-    #   :width::
-    #   :align::
-    #   :sorttype::
-    #   :formatter::
-    #   :editable::
+    # args:: Hash of [colModel options]{http://www.trirand.com/jqgridwiki/doku.php?id=wiki:colmodel_options}
     def add_column(name, attr, args={})
       col = {:name => attr, :index => attr}.merge(args)
       map = col.delete(:map_values)
@@ -187,6 +172,8 @@ module JqGridRails
       function_name
     end
 
+    # key:: ondbl_click_row/on_select_row
+    # Sets up click event functions based on hash values
     def map_click(key)
       if(@options[key].is_a?(Hash))
         @@url_gen ||= JqGridRails::UrlGenerator.new

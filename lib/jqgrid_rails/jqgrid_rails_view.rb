@@ -27,8 +27,6 @@ module JqGridRails
       output.html_safe
     end
 
-    
-
     def jqgrid_addrow(dom_id, idx, row_hash)
       "jQuery(\"##{dom_id}\").add_row(#{format_type_to_js(idx)}, #{format_type_to_js(row_hash)});".html_safe
     end

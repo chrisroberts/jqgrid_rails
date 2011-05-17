@@ -23,14 +23,10 @@ module JqGridRails
 
     # klass:: ActiveRecord::Base class or ActiveRecord::Relation
     # params:: Request params
-    # fields:: Fields used within grid. Can be an array of attribute 
-    #          names or a Hash mapping with the key being the model 
-    #          attribute and value being the reference used within the grid
+    # fields:: Fields used within grid. Can be an array of attribute names or a Hash with keys of attributes and Hash values with options
+    #   Array: [col1, col2, col3]
+    #   Hash: {'col1' => {:fomatter => lambda{|v|v.to_s.upcase}, :order => 'other_table.col1'}}
     # Provides generic JSON response for jqGrid requests (sorting/searching)
-    # Array: [col1, col2, col3]
-    # Hash: {'grid.name' => {:formatter => lambda{|x| x.upcase}, :sorter => 'model_table.name'}}
-
-
     def grid_response(klass, params, fields)
       allowed_consts = %w(ActiveRecord::Base ActiveRecord::Relation ActiveRecord::NamedScope::Scope)
       unless(allowed_consts.detect{|const| klass.ancestors.detect{|c| c.to_s == const}})
@@ -147,9 +143,10 @@ module JqGridRails
     # params:: Request params
     # fields:: Fields used within grid
     # Applies any filter restrictions to result set
-    # TODO: Currently this only supports AND'ing the filters. Need to add
-    #       support for grabbing groupOp from parameters and using it for
-    #       joining query parameters. 
+    #
+    # TODO: Currently this only supports AND'ing the filters. Need 
+    # to add support for grabbing groupOp from parameters and using it for
+    # joining query parameters. 
     def apply_filtering(klass, params, fields)
       rel = klass
       unless(params[:filters].blank?)
