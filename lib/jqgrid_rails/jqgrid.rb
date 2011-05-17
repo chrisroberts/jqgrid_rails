@@ -246,7 +246,7 @@ jQuery('<div class="#{(classes + url_hash[:class].to_a).compact.join(' ')}" />')
                       return '<input type=\"hidden\" name=\"ids[]\" value=\"'+item+'\"/>';
                     }
                   );
-                  jQuery('<form action=\"#{url_hash[:url]}\" method=\"POST\">' + parts).submit();
+                  jQuery('<form action=\"#{url_hash[:url]}\" method=\"GET\">' + parts).submit();
                 "
               end
             }
