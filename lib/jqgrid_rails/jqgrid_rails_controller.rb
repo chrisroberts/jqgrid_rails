@@ -43,7 +43,7 @@ module JqGridRails
           clean_fields[k.to_s] = v.nil? ? {} : v
         end
       else
-        clean_fields = fields
+        clean_fields = fields.map(&:to_s)
       end
       if(clean_fields.is_a?(Hash))
         raise TypeError.new 'Hash values must be of Hash type or nil' if fields.values.detect{|v| !v.is_a?(Hash)}
