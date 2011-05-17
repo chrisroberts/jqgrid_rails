@@ -151,44 +151,9 @@ module JqGridRails
       if(has_filter_toolbar?)
         output << "jQuery(\"##{@table_id}\").jqGrid('filterToolbar', #{format_type_to_js(@filter_toolbar_options)});\n"
       end
-
       if(has_link_toolbar?)
         @link_toolbar_options[:links].each do |url_hash|
-          output << <<-EOS
-jQuery('<div class="#{url_hash[:class] || 'grid_toolbar_item'}" />')
-  .text('#{escape_javascript(url_hash[:name])}')
-    .click(
-      function(){
-        var ary = jQuery('##{@table_id}').jqGrid('getGridParam', 'selarrrow');
-        if(!ary.length)
-          ary = new Array();
-        ary.push(jQuery('##{@table_id}').jqGrid('getGridParam', 'selrow'));
-        ary = ary.filter(function(elm){ return elm != null && elm.length });
-        if(!ary.length && #{format_type_to_js(!url_hash[:single])}){
-          alert('Please select items from table first.');
-        } else {
-          if(!ary.length){
-            #{
-              if(url_hash[:remote])
-                "jQuery.get('#{url_hash[:url]}');"
-              else
-                "window.location = '#{url_hash[:url]}/';"
-              end
-            }
-          }
-          else{
-            #{
-              if(url_hash[:remote])
-                "jQuery.get('#{url_hash[:url]}/?ids[]=' + ary.join('&ids[]='));"
-              else
-                "window.location = '#{url_hash[:url]}/?ids[]=' + ary.join('&ids[]=');"
-              end
-            }
-          }
-        }
-      }
-    ).appendTo('#t_#{@table_id}');
-EOS
+          output << create_toolbar_button(url_hash)
         end
         output << "jQuery(\"##{@table_id}\").jqGrid('navGrid', '##{@table_id}_linkbar', {edit:false,add:false,del:false});\n"
       end
@@ -225,10 +190,12 @@ EOS
     def map_click(key)
       if(@options[key].is_a?(Hash))
         @@url_gen ||= JqGridRails::UrlGenerator.new
+        args = options[key][:args].to_a
+        args << '!!'
         if(@options[key][:remote])
-          @options[key] = "function(id){ jQuery.get('#{@@url_gen.send(@options[key][:url], '!!')}'.replace('!!', id)) + '#{@options[key][:suffix]}'; }"
+          @options[key] = "function(id){ jQuery.get('#{@@url_gen.send(@options[key][:url], *args)}'.replace('!!', id)) + '#{@options[key][:suffix]}'; }"
         else
-          @options[key] = "function(id){ window.location = '#{@@url_gen.send(@options[key][:url], '!!')}'.replace('!!', id) + '#{@options[key][:suffix]}'; }"
+          @options[key] = "function(id){ window.location = '#{@@url_gen.send(@options[key][:url], *args)}'.replace('!!', id) + '#{@options[key][:suffix]}'; }"
         end
       end
     end
@@ -239,6 +206,55 @@ EOS
 
     def map_single_click
       map_click(:on_cell_select)
+    end
+
+    def create_toolbar_button(url_hash)
+      classes = ['grid_toolbar_item', 'button']
+      s = <<-EOS
+jQuery('<div class="#{(classes + url_hash[:class].to_a).compact.join(' ')}" />')
+  .text('#{escape_javascript(url_hash[:name])}')
+    .click(
+      function(){
+        var ary = jQuery('##{@table_id}').jqGrid('getGridParam', 'selarrrow');
+        if(!ary.length)
+          ary = new Array();
+        ary.push(jQuery('##{@table_id}').jqGrid('getGridParam', 'selrow'));
+        ary = ary.filter(function(elm){ return elm != null && elm.length });
+        if(!ary.length && #{format_type_to_js(!url_hash[:single])}){
+          alert('Please select items from table first.');
+        } else {
+          if(!ary.length){
+            #{
+              if(url_hash[:remote])
+                "jQuery.get('#{url_hash[:url]}');"
+              else
+                "window.location = '#{url_hash[:url]}/';"
+              end
+            }
+          }
+          else{
+            #{
+              if(url_hash[:remote])
+                "jQuery.post(
+                   '#{url_hash[:url]}',
+                   {'ids[]' :  ary}
+                 )"
+              else
+                "
+                  parts = ary.map(
+                    function(item){
+                      return '<input type=\"hidden\" name=\"ids[]\" value=\"'+item+'\"/>';
+                    }
+                  );
+                  jQuery('<form action=\"#{url_hash[:url]}\" method=\"POST\">' + parts).submit();
+                "
+              end
+            }
+          }
+        }
+      }
+    ).appendTo('#t_#{@table_id}');
+EOS
     end
   end
 end
