@@ -37,7 +37,7 @@ module JqGridRails
       [:ondbl_click_row,:on_cell_select].each do |key|
         map_click(key, options)
       end
-      output = "tableToGrid(\"#{convert_dom_id(dom_id)}\", #{format_type_to_js(options)});".html_safe
+      javascript_tag("tableToGrid(\"#{convert_dom_id(dom_id)}\", #{format_type_to_js(options)});")
     end
   end 
 end
