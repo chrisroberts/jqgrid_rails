@@ -7,7 +7,7 @@
   @grid.add_column('Bulletin Title', 'bulletin.title')
 
   format.json do
-    grid_response(Bulletin, params, ['bulletin.title'])
+    render :json => grid_response(Bulletin, params, ['bulletin.title'])
   end
 
 === Ordering properly on assocations
@@ -15,7 +15,7 @@
   @grid.add_column('Bulletin Title', 'bulletin.title')
 
   format.json do
-    grid_response(Bulletin, params, {
+    render :json => grid_response(Bulletin, params, {
       'bulletin.title' => {
         :order => 'my_bulletins.title'
       }
@@ -27,7 +27,7 @@
 === Providing Ruby based formatting on values
 
   format.json do
-    grid_response(User, params, {
+    render :json => grid_response(User, params, {
       :username => nil,
       'core_company.name' => {
         :formatter => lambda{|value| value.to_s.upcase}
