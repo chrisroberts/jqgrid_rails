@@ -1,9 +1,9 @@
-require 'jqgrid_rails/javascript_helper'
+require 'jqgrid_rails/jqgrid_rails_helpers'
 
 module JqGridRails
   module View
     include ActionView::Helpers::JavaScriptHelper
-    include JqGridRails::JavascriptHelper
+    include JqGridRails::Helpers
     include ActionView::Helpers::TagHelper
 
     # grid:: JqGrid Object
@@ -28,7 +28,16 @@ module JqGridRails
     end
 
     def jqgrid_addrow(dom_id, idx, row_hash)
-      "jQuery(\"##{dom_id}\").add_row(#{format_type_to_js(idx)}, #{format_type_to_js(row_hash)});".html_safe
+      "jQuery(\"#{convert_dom_id(dom_id)}\").add_row(#{format_type_to_js(idx)}, #{format_type_to_js(row_hash)});".html_safe
+    end
+
+    # dom_id:: DOM ID of existing table
+    # options:: Options hash for jqgrid
+    def table_to_grid(dom_id, options={})
+      [:ondbl_click_row,:on_cell_select].each do |key|
+        map_click(key, options)
+      end
+      output = "tableToGrid(\"#{convert_dom_id(dom_id)}\", #{format_type_to_js(options)});".html_safe
     end
   end 
 end

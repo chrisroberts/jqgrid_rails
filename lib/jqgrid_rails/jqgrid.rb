@@ -1,12 +1,12 @@
 require 'jqgrid_rails/jqgrid_url_generator'
-require 'jqgrid_rails/javascript_helper'
+require 'jqgrid_rails/jqgrid_rails_helpers'
 module JqGridRails
   class JqGrid
     
     include ActionView::Helpers::UrlHelper
     include ActionView::Helpers::JavaScriptHelper
     include ActionView::Helpers::UrlHelper
-    include JqGridRails::JavascriptHelper
+    include JqGridRails::Helpers
 
     # Options used to build tables
     attr_accessor :options
@@ -172,27 +172,12 @@ module JqGridRails
       function_name
     end
 
-    # key:: ondbl_click_row/on_select_row
-    # Sets up click event functions based on hash values
-    def map_click(key)
-      if(@options[key].is_a?(Hash))
-        @@url_gen ||= JqGridRails::UrlGenerator.new
-        args = options[key][:args].to_a
-        args << '!!'
-        if(@options[key][:remote])
-          @options[key] = "function(id){ jQuery.get('#{@@url_gen.send(@options[key][:url], *args)}'.replace('!!', id)) + '#{@options[key][:suffix]}'; }"
-        else
-          @options[key] = "function(id){ window.location = '#{@@url_gen.send(@options[key][:url], *args)}'.replace('!!', id) + '#{@options[key][:suffix]}'; }"
-        end
-      end
-    end
-
     def map_double_click
-      map_click(:ondbl_click_row)
+      map_click(:ondbl_click_row, options)
     end
 
     def map_single_click
-      map_click(:on_cell_select)
+      map_click(:on_cell_select, options)
     end
 
     def create_toolbar_button(url_hash)
