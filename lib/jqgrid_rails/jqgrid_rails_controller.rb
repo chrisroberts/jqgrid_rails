@@ -196,7 +196,7 @@ module JqGridRails
             end
           end
           if(fields.is_a?(Hash) && fields[method][:formatter].is_a?(Proc))
-            value = fields[method][:formatter].call(value)
+            value = fields[method][:formatter].call(value, row)
           end
           hsh[method] = value
         end
