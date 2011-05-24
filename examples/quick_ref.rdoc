@@ -30,11 +30,25 @@
     render :json => grid_response(User, params, {
       :username => nil,
       'core_company.name' => {
-        :formatter => lambda{|value| value.to_s.upcase}
+        :formatter => proc{|value| value.to_s.upcase}
       },
-      :email
+      :email => nil
     })
   end
+
+=== Accessing base object value originated from
+
+  format.json do
+    render :json => grid_response(User, params, {
+      :username => nil,
+      'core_company.name' => {
+        :formatter => proc{|value,obj| "#{value.to_s.upcase} - #{obj.username}"}
+      },
+      :email => nil
+    })
+  end
+
+Here, the formatter will receive the current instance of User being processed.
 
 === Simple value mapping (applied client side)
 
