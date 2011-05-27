@@ -215,7 +215,7 @@ jQuery('<div class="#{(classes + url_hash[:class].to_a).compact.join(' ')}" />')
               if(url_hash[:remote])
                 "jQuery.get('#{url_hash[:url]}');"
               else
-                "window.location = '#{url_hash[:url]}/';"
+                "window.location = '#{url_hash[:url]}';"
               end
             }
           }
@@ -233,7 +233,7 @@ jQuery('<div class="#{(classes + url_hash[:class].to_a).compact.join(' ')}" />')
                       return '<input type=\"hidden\" name=\"ids[]\" value=\"'+item+'\"/>';
                     }
                   );
-                  jQuery('<form action=\"#{url_hash[:url]}\" method=\"GET\">' + parts + '</form>').submit();
+                  jQuery('<form action=\"#{url_hash[:url]}\" method=\"POST\">' + parts + '</form>').submit();
                 "
               end
             }
