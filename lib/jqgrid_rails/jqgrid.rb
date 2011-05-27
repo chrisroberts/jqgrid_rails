@@ -122,6 +122,9 @@ module JqGridRails
     def build
       output = ''
       @options[:datatype] = 'local' unless @local.blank?
+      ####################################
+      load_multi_select_fix              # TODO: Remove this when fixed in jqGrid
+      ####################################
       map_double_click
       map_single_click
       output << "jQuery(\"##{@table_id}\").jqGrid(#{format_type_to_js(@options)});\n"
@@ -200,7 +203,7 @@ jQuery('<div class="#{(classes + url_hash[:class].to_a).compact.join(' ')}" />')
               if(url_hash[:remote])
                 "jQuery.get('#{url_hash[:url]}');"
               else
-                "window.location = '#{url_hash[:url]}/';"
+                "window.location = '#{url_hash[:url]}';"
               end
             }
           }
@@ -218,7 +221,7 @@ jQuery('<div class="#{(classes + url_hash[:class].to_a).compact.join(' ')}" />')
                       return '<input type=\"hidden\" name=\"ids[]\" value=\"'+item+'\"/>';
                     }
                   );
-                  jQuery('<form action=\"#{url_hash[:url]}\" method=\"GET\">' + parts).submit();
+                  jQuery('<form action=\"#{url_hash[:url]}\" method=\"POST\">' + parts + '</form>').submit();
                 "
               end
             }
@@ -227,6 +230,24 @@ jQuery('<div class="#{(classes + url_hash[:class].to_a).compact.join(' ')}" />')
       }
     ).appendTo('#t_#{@table_id}');
 EOS
+    end
+    
+    # This is a fix for the multi select within jqGrid. Rouge values will
+    # appear in the selection listing so this cleans things up properly
+    def load_multi_select_fix
+      @options[:on_select_all] = 'function(row_ids, status){
+        var grid = jQuery(this);
+        grid.jqGrid("resetSelection");
+        if(status){
+          jQuery.each(grid.jqGrid("getRowData"), function(){
+            grid.jqGrid(
+              "setSelection", 
+              this[grid.jqGrid("getGridParam", "jsonReader")["id"]]
+            );
+          });
+        }
+        jQuery("#cb_'+@table_id+'").attr("checked", status);
+      }'
     end
   end
 end
