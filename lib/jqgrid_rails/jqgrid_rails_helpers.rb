@@ -1,3 +1,5 @@
+require 'rails_javascript_helpers'
+
 module JqGridRails
   module Helpers
     include RailsJavaScriptHelpers
