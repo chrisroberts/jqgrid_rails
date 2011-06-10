@@ -1,32 +1,8 @@
 module JqGridRails
   module Helpers
-    # arg:: Object
-    # Does a simple transition on types from Ruby to Javascript.
-    def format_type_to_js(arg)
-      case arg
-        when Array
-          "[#{arg.map{|value| format_type_to_js(value)}.join(',')}]"
-        when Hash
-          "{#{arg.map{ |key, value|
-            k = key.is_a?(Symbol) ? key.to_s.camelize.sub(/^./, key.to_s[0,1].downcase) : "'#{key}'"
-            "#{k}:#{format_type_to_js(value)}"
-          }.join(',')}}"
-        when Fixnum
-          arg.to_s
-        when TrueClass
-          arg.to_s
-        when FalseClass
-          arg.to_s
-        else
-          arg.to_s =~ %r{^\s*function\s*\(} ? arg.to_s : "'#{escape_javascript(arg.to_s)}'"
-      end
-    end
+    include RailsJavaScriptHelpers
 
-    # dom_id:: DOM ID
-    # Convert DOM ID
-    def convert_dom_id(dom_id)
-      dom_id.to_s.start_with?('#') ? dom_id : "##{dom_id}"
-    end
+    alias_method :convert_dom_id, :format_id
     
     # key:: ondbl_click_row/on_select_row
     # Sets up click event functions based on hash values
