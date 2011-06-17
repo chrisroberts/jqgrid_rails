@@ -76,13 +76,17 @@ module JqGridRails
       if(fields.is_a?(Hash) && fields[col][:order].present?)
         fields[col][:order]
       else
-        parts = col.split('.')
-        if(parts.size > 1)
-          parts = parts[-2,2]
-          "#{parts.first.pluralize}.#{parts.last}"
-        else
-          "#{klass.table_name}.#{parts.first}"
-        end
+        database_name_by_string(col, klass)
+      end
+    end
+
+    def database_name_by_string(string, klass)
+      parts = string.split('.')
+      if(parts.size > 1)
+        parts = parts[-2,2]
+        "#{parts.first.pluralize}.#{parts.last}"
+      else
+        "#{klass.table_name}.#{parts.first}"
       end
     end
 
@@ -123,13 +127,13 @@ module JqGridRails
         raise ArgumentError.new("Invalid search operator received: #{search_oper}") unless SEARCH_OPERS.keys.include?(search_oper)
         if(defined?(ActiveRecord::Relation) && klass.is_a?(ActiveRecord::Relation))
           klass.where([
-            "#{search_field} #{SEARCH_OPERS[search_oper].first}",
+            "#{database_name_by_string(search_field, klass)} #{SEARCH_OPERS[search_oper].first}",
             SEARCH_OPERS[search_oper].last.call(search_string)
           ])
         else
           klass.scoped(
             :conditions => [
-              "#{search_field} #{SEARCH_OPERS[search_oper].first}",
+              "#{database_name_by_string(search_field, klass)} #{SEARCH_OPERS[search_oper].first}",
               SEARCH_OPERS[search_oper].last.call(search_string)
             ]
           )
