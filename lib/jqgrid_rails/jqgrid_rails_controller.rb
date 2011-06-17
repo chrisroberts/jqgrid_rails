@@ -55,6 +55,7 @@ module JqGridRails
     # fields:: Array or Hash map of fields
     # Returns proper field if mapped and ensures field is valid
     def discover_field(given, fields)
+      given = JqGridRails.unescape(given)
       col = nil
       case fields
         when Hash
@@ -73,6 +74,7 @@ module JqGridRails
     # fields:: Aray or Hash map of fields
     # Returns proper sorter based on inference or user defined
     def discover_sorter(klass, col, fields)
+      col = JqGridRails.unescape(col)
       if(fields.is_a?(Hash) && fields[col][:order].present?)
         fields[col][:order]
       else
@@ -80,15 +82,7 @@ module JqGridRails
       end
     end
 
-    def database_name_by_string(string, klass)
-      parts = string.split('.')
-      if(parts.size > 1)
-        parts = parts[-2,2]
-        "#{parts.first.pluralize}.#{parts.last}"
-      else
-        "#{klass.table_name}.#{parts.first}"
-      end
-    end
+
 
     # klass:: ActiveRecord::Base class or ActiveRecord::Relation
     # params:: Request params
@@ -156,19 +150,19 @@ module JqGridRails
       unless(params[:filters].blank?)
         filters = JSON.load(params[:filters])
         filters['rules'].each do |filter|
-          field = discover_field(filter['field'], fields)
+          field = discover_field(filter['field'].gsub('___', '.'), fields)
           oper = filter['op']
           raise ArgumentError.new("Invalid search operator received: #{oper}") unless SEARCH_OPERS.keys.include?(oper)
           data = filter['data']
           if(defined?(ActiveRecord::Relation) && rel.is_a?(ActiveRecord::Relation))
             rel = rel.where([
-              "#{field} #{SEARCH_OPERS[oper].first}",
+              "#{database_name_by_string(field, klass)} #{SEARCH_OPERS[oper].first}",
               SEARCH_OPERS[oper].last.call(data)
             ])
           else
             rel = rel.scoped(
               :conditions => [
-                "#{field} #{SEARCH_OPERS[oper].first}",
+                "#{database_name_by_string(field, klass)} #{SEARCH_OPERS[oper].first}",
                 SEARCH_OPERS[oper].last.call(data)
               ]
             )
@@ -207,6 +201,18 @@ module JqGridRails
         hsh
       end
       res
+    end
+    
+    private
+
+    def database_name_by_string(string, klass)
+      parts = string.split('.')
+      if(parts.size > 1)
+        parts = parts[-2,2]
+        "#{parts.first.pluralize}.#{parts.last}"
+      else
+        "#{klass.table_name}.#{parts.first}"
+      end
     end
   end
 end

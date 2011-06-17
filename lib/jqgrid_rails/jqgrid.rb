@@ -58,6 +58,7 @@ module JqGridRails
     def add_column(name, attr, args={})
       col = {:name => attr, :index => attr}.merge(args)
       map = col.delete(:map_values)
+      col[:index] = JqGridRails.escape(col[:index]) unless @options[:no_index_escaping]
       col[:formatter] = add_value_mapper(map) if map
       @options[:col_names].push name
       @options[:col_model].push col

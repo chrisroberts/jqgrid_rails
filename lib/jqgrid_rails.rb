@@ -1,4 +1,5 @@
 require 'jqgrid_rails/version'
+require 'jqgrid_rails/escape_mappings'
 
 if(defined?(Rails))
   if(Rails.version.split('.').first == '3')
