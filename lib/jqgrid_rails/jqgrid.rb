@@ -170,7 +170,9 @@ module JqGridRails
       function_name = "map_#{Digest::SHA1.hexdigest(Time.now.to_f.to_s)}"
       @output << "jQuery.extend(jQuery.fn.fmatter, {
         #{function_name} : function(cellvalue, options, rowdata){
-          return #{format_type_to_js(map)}[cellvalue];
+          keys = #{format_type_to_js(map.keys)}
+          values = #{format_type_to_js(map.values)}
+          return values[jQuery.inArray(cellvalue, keys)];
         }
       });"
       function_name
