@@ -187,6 +187,10 @@ module JqGridRails
     end
 
     def create_toolbar_button(url_hash)
+      url_hash[:method] = url_hash[:method].to_s if url_hash[:method]
+      ajax_args = url_hash.delete(:ajax) || {}
+      ajax_args[:type] ||= url_hash.delete(:method) || 'get'
+      ajax_args[:type] = ajax_args[:type].to_s
       classes = ['grid_toolbar_item', 'button']
       s = <<-EOS
 jQuery('<div class="#{(classes + url_hash[:class].to_a).compact.join(' ')}" />')
@@ -204,19 +208,19 @@ jQuery('<div class="#{(classes + url_hash[:class].to_a).compact.join(' ')}" />')
           if(!ary.length){
             #{
               if(url_hash[:remote])
-                "jQuery.get('#{url_hash[:url]}');"
+                "jQuery.ajax('#{url_hash[:url]}', #{format_type_to_js(ajax_args)});"
               else
+                "jQuery('<form action=\"#{url_hash[:url]}\" method=\"#{(url_hash[:method] || 'get').to_s.upcase}\"></form>').submit();"
                 "window.location = '#{url_hash[:url]}';"
               end
             }
           }
           else{
+            ary_hash = {'ids[]' : ary};
             #{
               if(url_hash[:remote])
-                "jQuery.get(
-                   '#{url_hash[:url]}',
-                   {'ids[]' :  ary}
-                 )"
+                ajax_args[:data] = RawJS.new('ary_hash')
+                "jQuery.ajax('#{url_hash[:url]}', #{format_type_to_js(ajax_args)});"
               else
                 "
                   parts = ary.map(
@@ -224,7 +228,7 @@ jQuery('<div class="#{(classes + url_hash[:class].to_a).compact.join(' ')}" />')
                       return '<input type=\"hidden\" name=\"ids[]\" value=\"'+item+'\"/>';
                     }
                   );
-                  jQuery('<form action=\"#{url_hash[:url]}\" method=\"POST\">' + parts + '</form>').submit();
+                  jQuery('<form action=\"#{url_hash[:url]}\" method=\"#{(url_hash[:method] || 'get').to_s.upcase}\">' + parts + '</form>').submit();
                 "
               end
             }
