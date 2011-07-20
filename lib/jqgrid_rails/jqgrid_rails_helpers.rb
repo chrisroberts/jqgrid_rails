@@ -20,7 +20,10 @@ module JqGridRails
         if(options[key][:remote])
           options[key] = "function(id){ jQuery.ajax('#{@url_gen.send(options[key][:url], *args)}'.replace('000', id) + '#{options[key][:suffix]}', #{format_type_to_js(ajax_args)}); }"
         else
-          options[key] = "function(id){ jQuery('<form action=\"#{@url_gen.send(options[key][:url], *args)}\" method=\"#{ajax_args[:type].upcase}\"></form>'.replace('000', id)).submit(); }"
+          options[key] = "function(id){
+            jQuery('body').append('<form id=\"redirector\" action=\"#{@url_gen.send(options[key][:url], *args)}\" method=\"#{ajax_args[:type].upcase}\"></form>'.replace('000', id));
+            jQuery('#redirector').submit();
+          }"
         end
       end
     end

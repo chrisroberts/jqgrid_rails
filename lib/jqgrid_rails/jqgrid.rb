@@ -166,6 +166,8 @@ module JqGridRails
       !@link_toolbar_options.blank? && !@link_toolbar_options[:links].empty?
     end
 
+    # map:: Hash of key value mapping
+    # Creates a client side value mapper using a randomized function name
     def add_value_mapper(map)
       function_name = "map_#{Digest::SHA1.hexdigest(Time.now.to_f.to_s)}"
       @output << "jQuery.extend(jQuery.fn.fmatter, {
@@ -178,14 +180,18 @@ module JqGridRails
       function_name
     end
 
+    # Creates function callback for row double clicks
     def map_double_click
       map_click(:ondbl_click_row, options)
     end
 
+    # Creates function callback from row single clicks
     def map_single_click
       map_click(:on_cell_select, options)
     end
 
+    # url_hash:: Hash of url options. Use :method to specify request method other than 'get'
+    # Creates a toolbar button on the grid
     def create_toolbar_button(url_hash)
       url_hash[:method] = url_hash[:method].to_s if url_hash[:method]
       ajax_args = url_hash.delete(:ajax) || {}
@@ -210,8 +216,7 @@ jQuery('<div class="#{(classes + url_hash[:class].to_a).compact.join(' ')}" />')
               if(url_hash[:remote])
                 "jQuery.ajax('#{url_hash[:url]}', #{format_type_to_js(ajax_args)});"
               else
-                "jQuery('<form action=\"#{url_hash[:url]}\" method=\"#{(url_hash[:method] || 'get').to_s.upcase}\"></form>').submit();"
-                "window.location = '#{url_hash[:url]}';"
+                "jQuery('body').append('<form id=\"redirector\" action=\"#{url_hash[:url]}\" method=\"#{(url_hash[:method] || 'get').to_s.upcase}\"></form>'); jQuery('#redirector').submit();"
               end
             }
           }
@@ -228,7 +233,7 @@ jQuery('<div class="#{(classes + url_hash[:class].to_a).compact.join(' ')}" />')
                       return '<input type=\"hidden\" name=\"ids[]\" value=\"'+item+'\"/>';
                     }
                   );
-                  jQuery('<form action=\"#{url_hash[:url]}\" method=\"#{(url_hash[:method] || 'get').to_s.upcase}\">' + parts + '</form>').submit();
+                  jQuery('body').append('<form id=\"redirector\" action=\"#{url_hash[:url]}\" method=\"#{(url_hash[:method] || 'get').to_s.upcase}\">' + parts + '</form>'); jQuery('#redirector').submit();
                 "
               end
             }
