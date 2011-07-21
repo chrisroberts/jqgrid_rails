@@ -47,7 +47,6 @@ module JqGridRails
       if(t_args = options.delete(:link_toolbar))
         enable_link_toolbar(t_args.is_a?(Hash) ? t_args : nil)
       end
-      @options[:pager] = "#{@table_id}_pager" if @options[:pager] == true
       @local = []
       @output = ''
     end
@@ -111,6 +110,15 @@ module JqGridRails
       self
     end
 
+    def disable_filter_toolbar
+      @filter_toolbar_options = nil
+      self
+    end
+
+    def disable_link_toolbar
+      @link_toolbar_options = nil
+    end
+
     # link:: url hash: :name, :url, :class
     # Enables link on link toolbar
     def link_toolbar_add(link)
@@ -118,6 +126,7 @@ module JqGridRails
       @link_toolbar_options[:links].push(link)
       self
     end
+    alias_method :add_toolbar_link, :link_toolbar_add
 
     # Builds out the jqGrid javascript and returns the string
     def build
@@ -193,55 +202,7 @@ module JqGridRails
     # url_hash:: Hash of url options. Use :method to specify request method other than 'get'
     # Creates a toolbar button on the grid
     def create_toolbar_button(url_hash)
-      url_hash[:method] = url_hash[:method].to_s if url_hash[:method]
-      ajax_args = url_hash.delete(:ajax) || {}
-      ajax_args[:type] ||= url_hash.delete(:method) || 'get'
-      ajax_args[:type] = ajax_args[:type].to_s
-      classes = ['grid_toolbar_item', 'button']
-      s = <<-EOS
-jQuery('<div class="#{(classes + url_hash[:class].to_a).compact.join(' ')}" />')
-  .text('#{escape_javascript(url_hash[:name])}')
-    .click(
-      function(){
-        var ary = jQuery('##{@table_id}').jqGrid('getGridParam', 'selarrrow');
-        if(!ary.length)
-          ary = new Array();
-        ary.push(jQuery('##{@table_id}').jqGrid('getGridParam', 'selrow'));
-        ary = ary.filter(function(elm){ return elm != null && elm.length });
-        if(!ary.length && #{format_type_to_js(!url_hash[:single])}){
-          alert('Please select items from table first.');
-        } else {
-          if(!ary.length){
-            #{
-              if(url_hash[:remote])
-                "jQuery.ajax('#{url_hash[:url]}', #{format_type_to_js(ajax_args)});"
-              else
-                "jQuery('body').append('<form id=\"redirector\" action=\"#{url_hash[:url]}\" method=\"#{(url_hash[:method] || 'get').to_s.upcase}\"></form>'); jQuery('#redirector').submit();"
-              end
-            }
-          }
-          else{
-            ary_hash = {'ids[]' : ary};
-            #{
-              if(url_hash[:remote])
-                ajax_args[:data] = RawJS.new('ary_hash')
-                "jQuery.ajax('#{url_hash[:url]}', #{format_type_to_js(ajax_args)});"
-              else
-                "
-                  parts = ary.map(
-                    function(item){
-                      return '<input type=\"hidden\" name=\"ids[]\" value=\"'+item+'\"/>';
-                    }
-                  );
-                  jQuery('body').append('<form id=\"redirector\" action=\"#{url_hash[:url]}\" method=\"#{(url_hash[:method] || 'get').to_s.upcase}\">' + parts + '</form>'); jQuery('#redirector').submit();
-                "
-              end
-            }
-          }
-        }
-      }
-    ).appendTo('#t_#{@table_id}');
-EOS
+      build_toolbar_button(url_hash)
     end
     
     # This is a fix for the multi select within jqGrid. Rouge values will
