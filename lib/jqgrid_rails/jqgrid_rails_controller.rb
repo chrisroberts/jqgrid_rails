@@ -78,7 +78,7 @@ module JqGridRails
       if(fields.is_a?(Hash) && fields[col][:order].present?)
         fields[col][:order]
       else
-        database_name_by_string(col, klass)
+        database_name_by_string(col, klass, fields)
       end
     end
 
@@ -113,6 +113,7 @@ module JqGridRails
     # params:: Request params
     # fields:: Fields used within grid
     # Applies any search restrictions to result set
+    # TODO: DRY out #apply_filtering and #apply_searching
     def apply_searching(klass, params, fields)
       unless(params[:searchField].blank?)
         search_field = discover_field(params[:searchField], fields)
@@ -120,17 +121,33 @@ module JqGridRails
         search_string = params[:searchString]
         raise ArgumentError.new("Invalid search operator received: #{search_oper}") unless SEARCH_OPERS.keys.include?(search_oper)
         if(defined?(ActiveRecord::Relation) && klass.is_a?(ActiveRecord::Relation))
-          klass.where([
-            "#{database_name_by_string(search_field, klass)} #{SEARCH_OPERS[search_oper].first}",
-            SEARCH_OPERS[search_oper].last.call(search_string)
-          ])
-        else
-          klass.scoped(
-            :conditions => [
-              "#{database_name_by_string(search_field, klass)} #{SEARCH_OPERS[search_oper].first}",
+          if(fields.is_a?(Hash) && fields[field][:having])
+            rel = rel.having([
+              "#{fields[field][:having]} #{SEARCH_OPERS[oper].first}", SEARCH_OPERS[oper].last.call(data)
+            ])
+          end
+          if(!fields.is_a?(Hash) || fields[field][:having].blank? || fields[field][:where])
+            klass.where([
+              "#{database_name_by_string(search_field, klass, fields)} #{SEARCH_OPERS[search_oper].first}",
               SEARCH_OPERS[search_oper].last.call(search_string)
-            ]
-          )
+            ])
+          end
+        else
+          if(fields.is_a?(Hash) && fields[field][:having])
+            rel = rel.scoped(
+              :conditions => [
+                "#{fields[field][:having]} #{SEARCH_OPERS[oper].first}", SEARCH_OPERS[oper].last.call(data)
+              ]
+            )
+          end
+          if(!fields.is_a?(Hash) || fields[field][:having].blank? || fields[field][:where])
+            klass.scoped(
+              :conditions => [
+                "#{database_name_by_string(search_field, klass, fields)} #{SEARCH_OPERS[search_oper].first}",
+                SEARCH_OPERS[search_oper].last.call(search_string)
+              ]
+            )
+          end
         end
       else
         klass
@@ -147,6 +164,7 @@ module JqGridRails
     # joining query parameters. 
     def apply_filtering(klass, params, fields)
       rel = klass
+      havings = []
       unless(params[:filters].blank?)
         filters = JSON.load(params[:filters])
         filters['rules'].each do |filter|
@@ -154,20 +172,31 @@ module JqGridRails
           oper = filter['op']
           raise ArgumentError.new("Invalid search operator received: #{oper}") unless SEARCH_OPERS.keys.include?(oper)
           data = filter['data']
+          if(fields.is_a?(Hash) && fields[field][:having])
+            havings << ["#{fields[field][:having]} #{SEARCH_OPERS[oper].first}", SEARCH_OPERS[oper].last.call(data)]
+          end
           if(defined?(ActiveRecord::Relation) && rel.is_a?(ActiveRecord::Relation))
-            rel = rel.where([
-              "#{database_name_by_string(field, klass)} #{SEARCH_OPERS[oper].first}",
-              SEARCH_OPERS[oper].last.call(data)
-            ])
-          else
-            rel = rel.scoped(
-              :conditions => [
-                "#{database_name_by_string(field, klass)} #{SEARCH_OPERS[oper].first}",
+            if(!fields.is_a?(Hash) || fields[field][:having].blank? || fields[field][:where])
+              rel = rel.where([
+                "#{database_name_by_string(field, klass, fields)} #{SEARCH_OPERS[oper].first}",
                 SEARCH_OPERS[oper].last.call(data)
-              ]
-            )
+              ])
+            end
+          else
+            if(!fields.is_a?(Hash) || fields[field][:having].blank? || fields[field][:where])
+              rel = rel.scoped(
+                :conditions => [
+                  "#{database_name_by_string(field, klass, fields)} #{SEARCH_OPERS[oper].first}",
+                  SEARCH_OPERS[oper].last.call(data)
+                ]
+              )
+            end
           end
         end
+      end
+      unless(havings.blank?)
+        ary = ["(#{havings.map(&:first).join(') AND (')})", *havings.map(&:last)]
+        rel = defined?(ActiveRecord::Relation) && rel.is_a?(ActiveRecord::Relation) ? rel.having(ary) : rel.scoped(:having => ary)
       end
       rel
     end
@@ -205,13 +234,17 @@ module JqGridRails
     
     private
 
-    def database_name_by_string(string, klass)
-      parts = string.split('.')
-      if(parts.size > 1)
-        parts = parts[-2,2]
-        "#{parts.first.pluralize}.#{parts.last}"
+    def database_name_by_string(string, klass, fields)
+      if(fields.is_a?(Hash) && fields[string].try(:[], :where))
+        fields[string][:where]
       else
-        "#{klass.table_name}.#{parts.first}"
+        parts = string.split('.')
+        if(parts.size > 1)
+          parts = parts[-2,2]
+          "#{parts.first.pluralize}.#{parts.last}"
+        else
+          "#{klass.table_name}.#{parts.first}"
+        end
       end
     end
   end
