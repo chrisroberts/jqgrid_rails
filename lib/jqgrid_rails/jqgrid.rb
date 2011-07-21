@@ -131,6 +131,7 @@ module JqGridRails
     # Builds out the jqGrid javascript and returns the string
     def build
       output = ''
+      sortable_rows = @options.delete(:sortable_rows)
       @options[:datatype] = 'local' unless @local.blank?
       ####################################
       load_multi_select_fix              # TODO: Remove this when fixed in jqGrid
@@ -154,6 +155,9 @@ module JqGridRails
           output << create_toolbar_button(url_hash)
         end
         output << "jQuery(\"##{@table_id}\").jqGrid('navGrid', '##{@table_id}_linkbar', {edit:false,add:false,del:false});\n"
+      end
+      if(sortable_rows)
+        output << enable_sortable_rows(sortable_rows)
       end
       "#{@output}\n#{output}"
     end
@@ -203,6 +207,15 @@ module JqGridRails
     # Creates a toolbar button on the grid
     def create_toolbar_button(url_hash)
       build_toolbar_button(url_hash)
+    end
+
+    # sortable_rows:: options hash
+    # Enables row sorting on grid
+    # TODO: Add helpers to build remote callbacks in the
+    # same format as the click events and toolbar links
+    def enable_sortable_rows(sortable_rows)
+      sortable_rows = {} unless sortable_rows.is_a?(Hash)
+      output << "jQuery(\"##{@table_id}\").sortableRows(#{format_type_to_js(sortable_rows)});\n"
     end
     
     # This is a fix for the multi select within jqGrid. Rouge values will
