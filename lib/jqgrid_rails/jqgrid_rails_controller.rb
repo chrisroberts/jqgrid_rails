@@ -47,7 +47,7 @@ module JqGridRails
       rel = apply_sorting(klass, params, clean_fields)
       rel = apply_searching(rel, params, clean_fields)
       rel = apply_filtering(rel, params, clean_fields)
-      hash = create_result_hash(rel, clean_fields)
+      hash = create_result_hash(klass, rel, clean_fields)
       hash.to_json
     end
 
@@ -204,12 +204,16 @@ module JqGridRails
     # klass:: ActiveRecord::Base class or ActiveRecord::Relation
     # fields:: Fields used within grid
     # Creates a result Hash in the structure the grid is expecting
-    def create_result_hash(klass, fields)
-      dbres = klass.paginate(
-        :page => params[:page], 
-        :per_page => params[:rows]
-      )
-      res = {'total' => dbres.total_pages, 'page' => dbres.current_page, 'records' => dbres.total_entries}
+    def create_result_hash(raw_klass, klass, fields)
+      if(defined?(ActiveRecord::Relation) && klass.is_a?(ActiveRecord::Relation))
+        dbres = klass.limit(params[:rows]).offset(params[:page].to_i - 1).all
+        total = raw_klass.respond_to?(:length) ? raw_klass.length : raw_klass.count
+      else
+        dbres = klass.find(:all, :limit => params[:rows], :offset => params[:page])
+        total = raw_klass.count
+      end
+      total_pages = (total.to_f / params[:rows].to_i).ceil
+      res = {'total' => total_pages, 'page' => params[:page], 'records' => total}
       calls = fields.is_a?(Array) ? fields : fields.is_a?(Hash) ? fields.keys : nil
       maps = fields.is_a?(Hash) ? fields : nil
       res['rows'] = dbres.map do |row|
