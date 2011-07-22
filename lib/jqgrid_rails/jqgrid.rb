@@ -215,7 +215,7 @@ module JqGridRails
     # same format as the click events and toolbar links
     def enable_sortable_rows(sortable_rows)
       sortable_rows = {} unless sortable_rows.is_a?(Hash)
-      output << "jQuery(\"##{@table_id}\").sortableRows(#{format_type_to_js(sortable_rows)});\n"
+      "jQuery(\"##{@table_id}\").sortableRows(#{format_type_to_js(sortable_rows)});\n"
     end
     
     # This is a fix for the multi select within jqGrid. Rouge values will
