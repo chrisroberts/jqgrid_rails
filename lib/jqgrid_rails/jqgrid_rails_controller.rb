@@ -206,10 +206,10 @@ module JqGridRails
     # Creates a result Hash in the structure the grid is expecting
     def create_result_hash(raw_klass, klass, fields)
       if(defined?(ActiveRecord::Relation) && klass.is_a?(ActiveRecord::Relation))
-        dbres = klass.limit(params[:rows]).offset(params[:page].to_i - 1).all
+        dbres = klass.limit(params[:rows].to_i).offset(params[:rows].to_i * (params[:page].to_i - 1)).all
         total = raw_klass.respond_to?(:length) ? raw_klass.length : raw_klass.count
       else
-        dbres = klass.find(:all, :limit => params[:rows], :offset => params[:page])
+        dbres = klass.find(:all, :limit => params[:rows], :offset => (params[:rows].to_i * (params[:page].to_i - 1))
         total = raw_klass.count
       end
       total_pages = (total.to_f / params[:rows].to_i).ceil
