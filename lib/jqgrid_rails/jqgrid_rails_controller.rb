@@ -209,7 +209,7 @@ module JqGridRails
         dbres = klass.limit(params[:rows].to_i).offset(params[:rows].to_i * (params[:page].to_i - 1)).all
         total = raw_klass.respond_to?(:length) ? raw_klass.length : raw_klass.count
       else
-        dbres = klass.find(:all, :limit => params[:rows], :offset => (params[:rows].to_i * (params[:page].to_i - 1))
+        dbres = klass.find(:all, :limit => params[:rows], :offset => (params[:rows].to_i * (params[:page].to_i - 1)))
         total = raw_klass.count
       end
       total_pages = (total.to_f / params[:rows].to_i).ceil
