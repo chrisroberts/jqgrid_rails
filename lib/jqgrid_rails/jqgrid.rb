@@ -131,13 +131,18 @@ module JqGridRails
     # Builds out the jqGrid javascript and returns the string
     def build
       output = ''
-      sortable_rows = @options.delete(:sortable_rows)
       @options[:datatype] = 'local' unless @local.blank?
       ####################################
       load_multi_select_fix              # TODO: Remove this when fixed in jqGrid
       ####################################
       map_double_click
       map_single_click
+      @options.each_pair do |key,value|
+        if(value.is_a?(Hash))
+          @options[key] = hash_to_callback(value)
+        end
+      end
+      sortable_rows = @options.delete(:sortable_rows)
       output << "jQuery(\"##{@table_id}\").jqGrid(#{format_type_to_js(@options)});\n"
       unless(@local.blank?)
         output << "if(typeof(jqgrid_local_data) == 'undefined'){ var jqgrid_local_data = new Hash(); }\n"
