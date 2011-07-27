@@ -21,7 +21,7 @@ module JqGridRails
         when :item
           build_single_callback(hash)
         when :selection
-          build_collection_callback(hash)
+          build_selection_callback(hash)
         else
           build_default_callback(hash)
         end
@@ -50,7 +50,7 @@ module JqGridRails
     # Builds callback function for single selection
     def build_single_callback(hash)
       hash[:id_replacement] ||= '000'
-      hash[:args] ||= []
+      hash[:args] = hash[:args].to_a unless hash[:args].is_a?(Array)
       hash[:args].push hash[:id_replacement]
       args = extract_callback_variables(hash)
       if(hash[:remote])
@@ -93,6 +93,8 @@ module JqGridRails
     def build_selection_callback(hash, table_id=nil)
       dom_id = table_id || @table_id
       hash[:id_replacement] ||= '000'
+      hash[:args] = hash[:args].to_a unless hash[:args].is_a?(Array)
+      hash[:args].push hash[:id_replacement]
       args = extract_callback_variables(hash)
       function = "function(){ 
         rows_func = #{selection_array(true, table_id)} 
@@ -101,7 +103,7 @@ module JqGridRails
       "
       if(hash[:remote])
         args[:ajax_args][:data] = {:ids => RawJS.new('ary')}
-        function << "jQuery.ajax(#{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, ary[0]), #{format_type_to_js(args[:ajax_args])});"
+        function << "jQuery.ajax(#{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, ary[0]), #{format_type_to_js(args[:ajax_args])}); }"
       else
         randomizer = rand(99999)
         function << "parts = ary.map(
@@ -140,9 +142,11 @@ module JqGridRails
       end
     end
 
+    # url_hash:: hash for url building
+    # Creates a toolbar button for the grid
     def build_toolbar_button(url_hash)
       url_hash[:empty_selection] ||= !url_hash[:single]
-      url_hash[:build_callback] ||= :selection unless url_hash[:empty_selection]
+      url_hash[:build_callback] = :selection # ||= :selection unless url_hash[:empty_selection]
       classes = ['grid_toolbar_item', 'button']
       s = <<-EOS
 jQuery('<div class="#{(classes + url_hash[:class].to_a).compact.join(' ')}" />')
@@ -151,6 +155,15 @@ jQuery('<div class="#{(classes + url_hash[:class].to_a).compact.join(' ')}" />')
       #{hash_to_callback(url_hash)}
     ).appendTo('#t_#{@table_id}');
 EOS
+    end
+
+    # options_hash:: Hash of options
+    # Inserts callbacks in any applicable values
+    def scrub_options_hash(options_hash)
+      options_hash.each do |key,value|
+        options_hash[key] = hash_to_callback(value)
+      end
+      options_hash
     end
   end
 end

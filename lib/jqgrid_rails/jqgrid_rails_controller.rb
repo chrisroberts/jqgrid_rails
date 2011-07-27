@@ -32,6 +32,17 @@ module JqGridRails
       unless(allowed_consts.detect{|const| klass.ancestors.detect{|c| c.to_s == const}})
         raise TypeError.new "Unexpected type received. Allowed types are Class or ActiveRecord::Relation. Received: #{klass.class.name}"
       end
+      clean_fields = scrub_fields(fields)
+      rel = apply_searching(klass, params, clean_fields)
+      unsorted = apply_filtering(rel, params, clean_fields)
+      rel = apply_sorting(unsorted, params, clean_fields)
+      hash = create_result_hash(unsorted, rel, clean_fields)
+      hash.to_json
+    end
+
+    # fields:: Fields used within grid
+    # Scrubs out fields to ensure in proper state
+    def scrub_fields(fields)
       clean_fields = nil
       if(fields.is_a?(Hash))
         clean_fields = {}
@@ -44,11 +55,7 @@ module JqGridRails
       if(clean_fields.is_a?(Hash))
         raise TypeError.new 'Hash values must be of Hash type or nil' if fields.values.detect{|v| !v.is_a?(Hash)}
       end
-      rel = apply_searching(klass, params, clean_fields)
-      unsorted = apply_filtering(rel, params, clean_fields)
-      rel = apply_sorting(unsorted, params, clean_fields)
-      hash = create_result_hash(unsorted, rel, clean_fields)
-      hash.to_json
+      clean_fields
     end
 
     # given:: Field for searching

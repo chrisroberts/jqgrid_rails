@@ -137,11 +137,7 @@ module JqGridRails
       ####################################
       map_double_click
       map_single_click
-      @options.each_pair do |key,value|
-        if(value.is_a?(Hash))
-          @options[key] = hash_to_callback(value)
-        end
-      end
+      @options = scrub_options_hash(@options)
       sortable_rows = @options.delete(:sortable_rows)
       output << "jQuery(\"##{@table_id}\").jqGrid(#{format_type_to_js(@options)});\n"
       unless(@local.blank?)
@@ -162,7 +158,7 @@ module JqGridRails
         output << "jQuery(\"##{@table_id}\").jqGrid('navGrid', '##{@table_id}_linkbar', {edit:false,add:false,del:false});\n"
       end
       if(sortable_rows)
-        output << enable_sortable_rows(sortable_rows)
+        output << enable_sortable_rows(scrub_options_hash(sortable_rows))
       end
       "#{@output}\n#{output}"
     end
