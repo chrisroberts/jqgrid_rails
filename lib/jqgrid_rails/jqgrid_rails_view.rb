@@ -37,6 +37,11 @@ module JqGridRails
       [:ondbl_click_row,:on_cell_select].each do |key|
         map_click(key, options)
       end
+      options.each do |key,val|
+        if(val.is_a?(Hash))
+          options[key] = hash_to_callback(val)
+        end
+      end
       javascript_tag("tableToGrid(\"#{convert_dom_id(dom_id)}\", #{format_type_to_js(options)}); jQuery(\"#{convert_dom_id(dom_id)}\").trigger('reloadGrid');")
     end
   end 
