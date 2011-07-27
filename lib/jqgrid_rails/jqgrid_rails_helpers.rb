@@ -16,7 +16,7 @@ module JqGridRails
     # :remote         -> [true|false] Request should be made via ajax
     # :id_replacement -> Value used for dynamic ID replacement (generally not to be altered)
     def hash_to_callback(hash)
-      if(hash[:build_callback] != false && hash[:url])
+      if(hash.is_a?(Hash) && hash[:build_callback] != false && hash[:url])
         case hash[:build_callback]
         when :item
           build_single_callback(hash)
@@ -34,15 +34,15 @@ module JqGridRails
     # Extracts and formats argument hash for callbacks
     def extract_callback_variables(hash)
       @url_gen ||= JqGridRails::UrlGenerator.new
-      args = {}
+      args = hash.dup
       args[:ajax_args] = hash.delete(:ajax) || {}
-      args[:method] = ajax_args[:type] || ajax_args.delete(:method) || hash.delete(:method) || 'get'
+      args[:method] = args[:ajax_args][:type] || args[:ajax_args].delete(:method) || hash.delete(:method) || 'get'
       if(hash[:url].is_a?(Symbol))
         args[:url] = @url_gen.send(hash[:url], *hash[:args].to_a)
       else
         args[:url] = hash[:url]
       end
-      args[:ajax_args][:type] = method if hash[:remote]
+      args[:ajax_args][:type] = args[:method] if hash[:remote]
       args
     end
 
@@ -134,8 +134,10 @@ module JqGridRails
     # key:: ondbl_click_row/on_select_row
     # Sets up click event functions based on hash values
     def map_click(key, options)
-      options[key][:build_callback] = :item
-      options[key] = hash_to_callback(options[key])
+      if(options[key].is_a?(Hash))
+        options[key][:build_callback] = :item
+        options[key] = hash_to_callback(options[key])
+      end
     end
 
     def build_toolbar_button(url_hash)
