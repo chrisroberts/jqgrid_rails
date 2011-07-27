@@ -204,13 +204,16 @@ module JqGridRails
     # klass:: ActiveRecord::Base class or ActiveRecord::Relation
     # fields:: Fields used within grid
     # Creates a result Hash in the structure the grid is expecting
+    # TODO: Testing without raw_klass on complex scopings (IE: catalog tables)
+    # NOTE: Problem with counting on raw means that if result is filtered, resulting totals will be wrong. 
+    # NOTE: Perhaps provide custom counting scope that has everything applied EXCEPT ordering
     def create_result_hash(raw_klass, klass, fields)
       if(defined?(ActiveRecord::Relation) && klass.is_a?(ActiveRecord::Relation))
         dbres = klass.limit(params[:rows].to_i).offset(params[:rows].to_i * (params[:page].to_i - 1)).all
-        total = raw_klass.respond_to?(:length) ? raw_klass.length : raw_klass.count
+        total = klass.respond_to?(:length) ? klass.length : klass.count
       else
         dbres = klass.find(:all, :limit => params[:rows], :offset => (params[:rows].to_i * (params[:page].to_i - 1)))
-        total = raw_klass.count
+        total = klass.length
       end
       total_pages = (total.to_f / params[:rows].to_i).ceil
       res = {'total' => total_pages, 'page' => params[:page], 'records' => total}
