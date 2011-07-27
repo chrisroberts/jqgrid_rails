@@ -145,8 +145,8 @@ module JqGridRails
     # url_hash:: hash for url building
     # Creates a toolbar button for the grid
     def build_toolbar_button(url_hash)
-      url_hash[:empty_selection] ||= !url_hash[:single]
-      url_hash[:build_callback] = :selection # ||= :selection unless url_hash[:empty_selection]
+      url_hash[:empty_selection] = url_hash[:single]
+      url_hash[:build_callback] = :selection unless url_hash[:empty_selection]
       classes = ['grid_toolbar_item', 'button']
       s = <<-EOS
 jQuery('<div class="#{(classes + url_hash[:class].to_a).compact.join(' ')}" />')
