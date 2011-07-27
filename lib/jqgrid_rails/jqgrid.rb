@@ -200,12 +200,12 @@ module JqGridRails
 
     # Creates function callback for row double clicks
     def map_double_click
-      map_click(:ondbl_click_row, options)
+      map_click(:ondbl_click_row, options) if options[:ondbl_click_row]
     end
 
     # Creates function callback from row single clicks
     def map_single_click
-      map_click(:on_cell_select, options)
+      map_click(:on_cell_select, options) if options[:on_cell_select]
     end
 
     # url_hash:: Hash of url options. Use :method to specify request method other than 'get'
