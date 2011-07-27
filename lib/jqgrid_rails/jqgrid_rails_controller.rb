@@ -44,10 +44,10 @@ module JqGridRails
       if(clean_fields.is_a?(Hash))
         raise TypeError.new 'Hash values must be of Hash type or nil' if fields.values.detect{|v| !v.is_a?(Hash)}
       end
-      rel = apply_sorting(klass, params, clean_fields)
-      rel = apply_searching(rel, params, clean_fields)
-      rel = apply_filtering(rel, params, clean_fields)
-      hash = create_result_hash(klass, rel, clean_fields)
+      rel = apply_searching(klass, params, clean_fields)
+      unsorted = apply_filtering(rel, params, clean_fields)
+      rel = apply_sorting(unsorted, params, clean_fields)
+      hash = create_result_hash(unsorted, rel, clean_fields)
       hash.to_json
     end
 
@@ -204,16 +204,16 @@ module JqGridRails
     # klass:: ActiveRecord::Base class or ActiveRecord::Relation
     # fields:: Fields used within grid
     # Creates a result Hash in the structure the grid is expecting
-    # TODO: Testing without raw_klass on complex scopings (IE: catalog tables)
-    # NOTE: Problem with counting on raw means that if result is filtered, resulting totals will be wrong. 
-    # NOTE: Perhaps provide custom counting scope that has everything applied EXCEPT ordering
-    def create_result_hash(raw_klass, klass, fields)
+    # TODO: Calling #length is less than ideal on large datasets, but it is needed
+    # for cases where we are grouping items up for results. Perhaps set an optional
+    # flag to enable #length usage and use #count by default
+    def create_result_hash(unsorted, klass, fields)
       if(defined?(ActiveRecord::Relation) && klass.is_a?(ActiveRecord::Relation))
         dbres = klass.limit(params[:rows].to_i).offset(params[:rows].to_i * (params[:page].to_i - 1)).all
-        total = klass.respond_to?(:length) ? klass.length : klass.count
+        total = unsorted.respond_to?(:length) ? unsorted.length : unsorted.count
       else
         dbres = klass.find(:all, :limit => params[:rows], :offset => (params[:rows].to_i * (params[:page].to_i - 1)))
-        total = klass.length
+        total = unsorted.length
       end
       total_pages = (total.to_f / params[:rows].to_i).ceil
       res = {'total' => total_pages, 'page' => params[:page], 'records' => total}
