@@ -3,9 +3,10 @@ module JqGridRails
 
     # grid:: JqGridRails::JqGrid instance
     # Outputs javascript to build grid
-    def jqgrid(grid)
+    def jq_grid(grid)
       self << grid.build
     end
+    alias_method :jqgrid, :jq_grid
 
     # dom_id:: DOM ID of grid
     # Instructs grid to reload itself
