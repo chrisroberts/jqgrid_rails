@@ -291,9 +291,10 @@ class JQGRID < ::ActionView::TemplateHandler
       def send_method_path(item, path)
         p = ([path] unless path.is_a? Array) || path.dup
         p.inject(item) do |item, i|
-          ret = item.send(i)
-          raise "Item #{item.inspect} returned nil to method '#{i}'" unless ret
-          ret
+          unless(item.nil? || item.try(:respond_to?, i))
+            raise "Item #{item.inspect} does not respond to requested method '#{i}'"
+          end
+          item.try(:send, i)
         end
       end
       
