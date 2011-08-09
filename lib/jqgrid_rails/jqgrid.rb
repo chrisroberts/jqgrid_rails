@@ -26,6 +26,7 @@ module JqGridRails
         :col_names => [],
         :col_model => [],
         :viewrecords => true,
+        :load_complete => "function(){ jQuery('##{table_id}').jqGrid('setGridWidth', jQuery('##{table_id}_holder').innerWidth(), true); return true; }",
         :json_reader => {
           :root => 'rows',
           :page => 'page',

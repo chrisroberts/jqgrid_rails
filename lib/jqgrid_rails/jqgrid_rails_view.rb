@@ -9,7 +9,7 @@ module JqGridRails
     # grid:: JqGrid Object
     # Writes required HTML to page for grid
     def jqgrid_html(grid)
-      output = "<table id=\"#{grid.table_id}\"></table>"
+      output = "<div id=\"#{grid.table_id}_holder\" style=\"width:100%\"><table id=\"#{grid.table_id}\" width=\"100%\"></table></div>"
       if(grid.has_link_toolbar?)
         output << "<div id=\"#{grid.table_id}_linkbar\" class=\"jqgrid_linkbar\"></div>"
       end
