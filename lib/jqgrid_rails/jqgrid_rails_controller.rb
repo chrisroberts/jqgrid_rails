@@ -123,7 +123,7 @@ module JqGridRails
     # TODO: DRY out #apply_filtering and #apply_searching
     def apply_searching(klass, params, fields)
       unless(params[:searchField].blank?)
-        search_field = discover_field(params[:searchField], fields)
+        field = discover_field(params[:searchField], fields)
         search_oper = params[:searchOper]
         search_string = params[:searchString]
         raise ArgumentError.new("Invalid search operator received: #{search_oper}") unless SEARCH_OPERS.keys.include?(search_oper)
