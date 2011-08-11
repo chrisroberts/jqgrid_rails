@@ -135,7 +135,7 @@ module JqGridRails
           end
           if(!fields.is_a?(Hash) || fields[field][:having].blank? || fields[field][:where])
             klass.where([
-              "#{database_name_by_string(search_field, klass, fields)} #{SEARCH_OPERS[search_oper].first}",
+              "#{database_name_by_string(field, klass, fields)} #{SEARCH_OPERS[search_oper].first}",
               SEARCH_OPERS[search_oper].last.call(search_string)
             ])
           end
@@ -150,7 +150,7 @@ module JqGridRails
           if(!fields.is_a?(Hash) || fields[field][:having].blank? || fields[field][:where])
             klass.scoped(
               :conditions => [
-                "#{database_name_by_string(search_field, klass, fields)} #{SEARCH_OPERS[search_oper].first}",
+                "#{database_name_by_string(field, klass, fields)} #{SEARCH_OPERS[search_oper].first}",
                 SEARCH_OPERS[search_oper].last.call(search_string)
               ]
             )
