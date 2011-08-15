@@ -147,13 +147,14 @@ module JqGridRails
     def build_toolbar_button(url_hash)
       url_hash[:empty_selection] ||= url_hash[:single]
       url_hash[:build_callback] = :selection unless url_hash[:empty_selection]
-      classes = ['grid_toolbar_item', 'button']
+      classes = ['grid_toolbar_item', 'button', 'ui-state-default', 'ui-corner-all']
       s = <<-EOS
 jQuery('<div class="#{(classes + url_hash[:class].to_a).compact.join(' ')}" />')
   .text('#{escape_javascript(url_hash[:name])}')
-    .click(
-      #{hash_to_callback(url_hash)}
-    ).appendTo('#t_#{@table_id}');
+    .button()
+      .click(
+        #{hash_to_callback(url_hash)}
+      ).appendTo('#t_#{@table_id}');
 EOS
     end
 
