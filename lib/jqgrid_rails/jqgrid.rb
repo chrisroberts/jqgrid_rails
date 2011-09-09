@@ -203,6 +203,7 @@ module JqGridRails
     # Creates function callback from row single clicks
     def map_single_click
       map_click(:on_cell_select, options) if options[:on_cell_select]
+      map_click(:on_select_row, options) if options[:on_select_row]
     end
 
     # url_hash:: Hash of url options. Use :method to specify request method other than 'get'
