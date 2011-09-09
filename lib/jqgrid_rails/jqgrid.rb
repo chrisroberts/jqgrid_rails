@@ -210,10 +210,14 @@ module JqGridRails
     # Syncs up filter toolbar values with advanced search values if the
     # advanced search values have not already been provided
     def set_search_options
-      if(@options[:editoptions][:value])
-        @options[:searchoptions] ||= {}
-        unless(@options[:searchoptions].has_key?(:value))
-          @options[:searchoptions][:value] = @options[:editoptions][:value]
+      if(@options[:col_model])
+        @options[:col_model].each do |column|
+          if(column[:editoptions] && column[:editoptions][:value])
+            column[:searchoptions] ||= {}
+            unless(column[:searchoptions].has_key?(:value))
+              column[:searchoptions][:value] = column[:editoptions][:value]
+            end
+          end
         end
       end
     end
