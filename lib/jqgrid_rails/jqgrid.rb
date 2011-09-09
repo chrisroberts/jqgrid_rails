@@ -138,6 +138,7 @@ module JqGridRails
       ####################################
       map_double_click
       map_single_click
+      set_search_options
       @options = scrub_options_hash(@options)
       sortable_rows = @options.delete(:sortable_rows)
       output << "jQuery(\"##{@table_id}\").jqGrid(#{format_type_to_js(@options)});\n"
@@ -204,6 +205,17 @@ module JqGridRails
     def map_single_click
       map_click(:on_cell_select, options) if options[:on_cell_select]
       map_click(:on_select_row, options) if options[:on_select_row]
+    end
+
+    # Syncs up filter toolbar values with advanced search values if the
+    # advanced search values have not already been provided
+    def set_search_options
+      if(@options[:editoptions][:value])
+        @options[:searchoptions] ||= {}
+        unless(@options[:searchoptions].has_key?(:value))
+          @options[:searchoptions][:value] = @options[:editoptions][:value]
+        end
+      end
     end
 
     # url_hash:: Hash of url options. Use :method to specify request method other than 'get'
