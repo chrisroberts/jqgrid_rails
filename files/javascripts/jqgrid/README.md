@@ -1,10 +1,10 @@
 This version of `jquery.jqGrid.min.js` was generated from the forked jqGrid source at <https://github.com/davec/jqGrid>,
 using the [Google Closure Compiler](http://code.google.com/closure/compiler/docs/overview.html) for minification.
 
-The modified code includes fixes from the [override-request-type-for-inline-edit](https://github.com/davec/jqGrid/tree/override-request-type-for-inline-edit)
-and [explicit-jquery-onclick-values](https://github.com/davec/jqGrid/tree/explicit-jquery-onclick-values) branches.
-These fixes (1) allow inline edits to change the request type from the default
-POST to a PUT, to be compatible with Rails' resource routes and (2) change the
-usage of `$` to `jQuery` to avoid conflict with `$` in Prototype.
-
-Pull requests were sent to @tonytomov on 2011-09-02.
+The modified code includes fixes from the [uniform-row-height-for-virtual-scrolling](https://github.com/davec/jqGrid/tree/uniform-row-height-for-virtual-scrolling)
+and [keep-loading-indicator-until-done](https://github.com/davec/jqGrid/tree/keep-loading-indicator-until-done) branches.
+These fixes address two problems with virtual scrolling: (1) non-uniform row heights
+that either prevented the full table from being loaded, or caused duplicate pages
+to be loaded when scrolling to the end of the table; and (2) quickly scrolling of
+the table that resulted in pages being loaded out of order and the pager showing
+strange values (e.g., "View -79 - 120 of 150").
