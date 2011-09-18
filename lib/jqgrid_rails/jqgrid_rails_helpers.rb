@@ -1,3 +1,5 @@
+#TODO: :with_row option is currently only applied to remote calls. Needs to be updated
+#      for non-ajax calls by adding dynamic form updates to include inputs for row data
 require 'rails_javascript_helpers'
 
 module JqGridRails
@@ -54,6 +56,10 @@ module JqGridRails
       hash[:args].push hash[:id_replacement]
       args = extract_callback_variables(hash)
       if(hash[:remote])
+        if(hash[:with_row])
+          args[:ajax_args] ||= {}
+          args[:ajax_args][:data] = {:row_data => RawJS.new("jQuery('##{@table_id}').jqGrid('getRowData', id)")}
+        end
         " function(id){
             jQuery.ajax(#{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, id), #{format_type_to_js(args[:ajax_args])});
           }
@@ -103,6 +109,9 @@ module JqGridRails
       "
       if(hash[:remote])
         args[:ajax_args][:data] = {:ids => RawJS.new('ary')}
+        if(hash[:with_row])
+          args[:ajax_args][:data][:row_data => RawJS.new("jQuery('##{@table_id}').jqGrid('getRowData')")]
+        end
         function << "jQuery.ajax(#{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, ary[0]), #{format_type_to_js(args[:ajax_args])}); }"
       else
         randomizer = rand(99999)
