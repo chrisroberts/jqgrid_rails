@@ -26,7 +26,6 @@ module JqGridRails
         :col_names => [],
         :col_model => [],
         :viewrecords => true,
-        :load_complete => "function(){ jQuery('##{table_id}').jqGrid('setGridWidth', jQuery(#{convert_dom_id(table_id)} + '_holder').innerWidth(), true); return true; }",
         :json_reader => {
           :root => 'rows',
           :page => 'page',
@@ -39,9 +38,7 @@ module JqGridRails
       if(args[:url].blank? && args[:datatype].to_s != 'local')
         raise ArgumentError.new 'URL is required unless :datatype is set to local'
       end
-      if(@table_id.is_a?(String))
-        @table_id = table_id.gsub('#', '')
-      end
+      @table_id = table_id.is_a?(String) ? table_id.gsub('#', '') : table_id
       @options = defaults.merge(args)
       @pager_options = {:edit => false, :add => false, :del => false}
       if(t_args = @options.delete(:filter_toolbar))
@@ -134,6 +131,7 @@ module JqGridRails
     # Builds out the jqGrid javascript and returns the string
     def build
       output = ''
+      @options[:load_complete] = "function(){ jQuery(#{convert_dom_id(@table_id)}).jqGrid('setGridWidth', jQuery(#{convert_dom_id(@table_id)} + '_holder').innerWidth(), true); return true; }",
       @options[:datatype] = 'local' unless @local.blank?
       ####################################
       load_multi_select_fix              # TODO: Remove this when fixed in jqGrid
