@@ -26,7 +26,7 @@ module JqGridRails
         :col_names => [],
         :col_model => [],
         :viewrecords => true,
-        :load_complete => "function(){ jQuery('##{table_id}').jqGrid('setGridWidth', jQuery('##{table_id}_holder').innerWidth(), true); return true; }",
+        :load_complete => "function(){ jQuery('##{table_id}').jqGrid('setGridWidth', jQuery(#{convert_dom_id(table_id)} + '_holder').innerWidth(), true); return true; }",
         :json_reader => {
           :root => 'rows',
           :page => 'page',
@@ -39,7 +39,9 @@ module JqGridRails
       if(args[:url].blank? && args[:datatype].to_s != 'local')
         raise ArgumentError.new 'URL is required unless :datatype is set to local'
       end
-      @table_id = table_id.gsub('#', '')
+      if(@table_id.is_a?(String))
+        @table_id = table_id.gsub('#', '')
+      end
       @options = defaults.merge(args)
       @pager_options = {:edit => false, :add => false, :del => false}
       if(t_args = @options.delete(:filter_toolbar))
@@ -141,23 +143,23 @@ module JqGridRails
       set_search_options
       @options = scrub_options_hash(@options)
       sortable_rows = @options.delete(:sortable_rows)
-      output << "jQuery(\"##{@table_id}\").jqGrid(#{format_type_to_js(@options)});\n"
+      output << "jQuery(#{convert_dom_id(@table_id)}).jqGrid(#{format_type_to_js(@options)});\n"
       unless(@local.blank?)
         output << "if(typeof(jqgrid_local_data) == 'undefined'){ var jqgrid_local_data = new Hash(); }\n"
-        output << "jqgrid_local_data.set('#{@table_id}', #{format_type_to_js(@local)});\n"
-        output << "for(var i = 0; i < jqgrid_local_data.get('#{@table_id}').length; i++){ jQuery(\"#{@table_id}\").jqGrid('addRowData', i+1, jqgrid_local_data.get('#{@table_id}')[i]); }\n"
+        output << "jqgrid_local_data.set(#{convert_dom_id(@table_id)}, #{format_type_to_js(@local)});\n"
+        output << "for(var i = 0; i < jqgrid_local_data.get(#{convert_dom_id(@table_id)}).length; i++){ jQuery(#{convert_dom_id(@table_id)}).jqGrid('addRowData', i+1, jqgrid_local_data.get(#{convert_dom_id(@table_id)})[i]); }\n"
       end
       if(has_pager?)
-        output << "jQuery(\"##{@table_id}\").jqGrid('navGrid', '##{@options[:pager]}', #{format_type_to_js(@pager_options)});"
+        output << "jQuery(#{convert_dom_id(@table_id)}).jqGrid('navGrid', #{format_type_to_js(@options[:pager])}, #{format_type_to_js(@pager_options)});"
       end
       if(has_filter_toolbar?)
-        output << "jQuery(\"##{@table_id}\").jqGrid('filterToolbar', #{format_type_to_js(@filter_toolbar_options)});\n"
+        output << "jQuery(#{convert_dom_id(@table_id)}).jqGrid('filterToolbar', #{format_type_to_js(@filter_toolbar_options)});\n"
       end
       if(has_link_toolbar?)
         @link_toolbar_options[:links].each do |url_hash|
           output << create_toolbar_button(url_hash)
         end
-        output << "jQuery(\"##{@table_id}\").jqGrid('navGrid', '##{@table_id}_linkbar', {edit:false,add:false,del:false});\n"
+        output << "jQuery(#{convert_dom_id(@table_id)}).jqGrid('navGrid', #{convert_dom_id(@table_id)} + '_linkbar', {edit:false,add:false,del:false});\n"
       end
       if(sortable_rows)
         output << enable_sortable_rows(scrub_options_hash(sortable_rows))
@@ -173,7 +175,7 @@ module JqGridRails
 
     # Returns if the grid has a pager enabled
     def has_pager?
-      @options[:pager] = "#{@table_id}_pager" if @options[:pager] == true
+      @options[:pager] = RawJS.new("#{convert_dom_id(@table_id)} + '_pager'") if @options[:pager] == true
       @options.has_key?(:pager)
     end
 
@@ -234,7 +236,7 @@ module JqGridRails
     # same format as the click events and toolbar links
     def enable_sortable_rows(sortable_rows)
       sortable_rows = {} unless sortable_rows.is_a?(Hash)
-      "jQuery(\"##{@table_id}\").sortableRows(#{format_type_to_js(sortable_rows)});\n"
+      "jQuery(#{convert_dom_id(@table_id)}).sortableRows(#{format_type_to_js(sortable_rows)});\n"
     end
     
     # This is a fix for the multi select within jqGrid. Rouge values will
@@ -251,7 +253,7 @@ module JqGridRails
             );
           });
         }
-        jQuery("#cb_'+@table_id+'").attr("checked", status);
+        jQuery("#cb_" + ' + @table_id.to_s + ').attr("checked", status);
       }'
     end
   end

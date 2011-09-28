@@ -7,29 +7,35 @@ module JqGridRails
     include ActionView::Helpers::TagHelper
 
     # grid:: JqGrid Object
-    # Writes required HTML to page for grid
+    # Returns required HTML for grid
     def jqgrid_html(grid)
       output = "<div id=\"#{grid.table_id}_holder\" style=\"width:100%\"><table id=\"#{grid.table_id}\" width=\"100%\"></table></div>"
       if(grid.has_link_toolbar?)
         output << "<div id=\"#{grid.table_id}_linkbar\" class=\"jqgrid_linkbar\"></div>"
       end
-      if(grid.has_pager? && grid.options[:pager] == "#{grid.table_id}_pager")
-        output << "<div id=\"#{grid.options[:pager]}\"></div>"
+      if(grid.has_pager? && grid.options[:pager].is_a?(RawJS))
+        output << "<div id=\"#{grid.table_id.sub(/^#/, '')}_pager\"></div>"
       end
       output.html_safe
     end
 
     # grid:: JqGrid Object
-    # Write jqGrid instructions out to page
+    # Returns required javascript for grid
+    def jqgrid_js(grid)
+      javascript_tag(grid.build)
+    end
+
+    # grid:: JqGrid Object
+    # Returns complete jqGrid instructions for building within HTML document
     def jq_grid(grid)
       output = jqgrid_html(grid)
-      output << javascript_tag(grid.build)
+      output << jqgrid_js(grid)
       output.html_safe
     end
     alias_method :jqgrid, :jq_grid
 
     def jqgrid_addrow(dom_id, idx, row_hash)
-      "jQuery(\"#{convert_dom_id(dom_id)}\").add_row(#{format_type_to_js(idx)}, #{format_type_to_js(row_hash)});".html_safe
+      "jQuery(#{convert_dom_id(dom_id)}).add_row(#{format_type_to_js(idx)}, #{format_type_to_js(row_hash)});".html_safe
     end
 
     # dom_id:: DOM ID of existing table
@@ -43,7 +49,7 @@ module JqGridRails
           options[key] = hash_to_callback(val)
         end
       end
-      javascript_tag("tableToGrid(\"#{convert_dom_id(dom_id)}\", #{format_type_to_js(options)}); jQuery(\"#{convert_dom_id(dom_id)}\").trigger('reloadGrid');")
+      javascript_tag("tableToGrid(#{convert_dom_id(dom_id)}, #{format_type_to_js(options)}); jQuery(#{convert_dom_id(dom_id)}).trigger('reloadGrid');")
     end
   end 
 end
