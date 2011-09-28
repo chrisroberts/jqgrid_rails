@@ -6,7 +6,14 @@ module JqGridRails
   module Helpers
     include RailsJavaScriptHelpers
 
-    alias_method :convert_dom_id, :format_id
+    # id:: String or RawJS object
+    # Ensures a DOM ID is returned from id. Does simple
+    # string replacement client side to force a # prefix.
+    # Client side conversion allows the id to be a RawJS
+    # instance for dynamic grid IDs
+    def convert_dom_id(id)
+      RawJS.new("#{format_type_to_js(id)}.replace(/^#*/, '#')")
+    end
 
     # hash:: Argument hash for callback generation
     # Generates a javascript callback from a Ruby hash. Important hash keys:
