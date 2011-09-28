@@ -47,7 +47,7 @@ module JqGridRails
       args[:ajax_args] = hash.delete(:ajax) || {}
       args[:method] = args[:ajax_args][:type] || args[:ajax_args].delete(:method) || hash.delete(:method) || 'get'
       if(hash[:url].is_a?(Symbol))
-        args[:url] = @url_gen.send(hash[:url], *hash[:args].to_a)
+        args[:url] = @url_gen.send(hash[:url], *Array(hash[:args]))
       else
         args[:url] = hash[:url]
       end
@@ -59,7 +59,7 @@ module JqGridRails
     # Builds callback function for single selection
     def build_single_callback(hash)
       hash[:id_replacement] ||= '000'
-      hash[:args] = hash[:args].to_a unless hash[:args].is_a?(Array)
+      hash[:args] = Array(hash[:args]) unless hash[:args].is_a?(Array)
       hash[:args].push hash[:id_replacement]
       args = extract_callback_variables(hash)
       if(hash[:remote])
@@ -106,7 +106,7 @@ module JqGridRails
     def build_selection_callback(hash, table_id=nil)
       dom_id = table_id || @table_id
       hash[:id_replacement] ||= '000'
-      hash[:args] = hash[:args].to_a unless hash[:args].is_a?(Array)
+      hash[:args] = Array(hash[:args]) unless hash[:args].is_a?(Array)
       hash[:args].push hash[:id_replacement]
       args = extract_callback_variables(hash)
       function = "function(){ 
@@ -165,7 +165,7 @@ module JqGridRails
       url_hash[:build_callback] ||= :selection unless url_hash[:empty_selection]
       classes = ['grid_toolbar_item', 'button', 'ui-state-default', 'ui-corner-all']
       s = <<-EOS
-jQuery('<div class="#{(classes + url_hash[:class].to_a).compact.join(' ')}" />')
+jQuery('<div class="#{(classes + Array(url_hash[:class])).compact.join(' ')}" />')
   .text('#{escape_javascript(url_hash[:name])}')
     .button()
       .click(
