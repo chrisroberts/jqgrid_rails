@@ -6,15 +6,16 @@ module JqGridRails
     include JqGridRails::Helpers
     include ActionView::Helpers::TagHelper
 
-    # grid:: JqGrid Object
+    # grid_or_id:: JqGrid Object or ID
     # Returns required HTML for grid
-    def jqgrid_html(grid)
-      output = "<div id=\"#{grid.table_id}_holder\" style=\"width:100%\"><table id=\"#{grid.table_id}\" width=\"100%\"></table></div>"
+    def jqgrid_html(grid_or_id)
+      dom_id = grid_or_id.respond_to?(:table_id) ? grid.table_id : grid.to_i
+      output = "<div id=\"#{dom_id}_holder\" style=\"width:100%\"><table id=\"#{dom_id}\" width=\"100%\"></table></div>"
       if(grid.has_link_toolbar?)
-        output << "<div id=\"#{grid.table_id}_linkbar\" class=\"jqgrid_linkbar\"></div>"
+        output << "<div id=\"#{dom_id}_linkbar\" class=\"jqgrid_linkbar\"></div>"
       end
       if(grid.has_pager? && grid.options[:pager].is_a?(RawJS))
-        output << "<div id=\"#{grid.table_id.sub(/^#/, '')}_pager\"></div>"
+        output << "<div id=\"#{dom_id}_pager\"></div>"
       end
       output.html_safe
     end
