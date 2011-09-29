@@ -172,7 +172,7 @@ jQuery('<div class="#{(classes + Array(url_hash[:class])).compact.join(' ')}" />
     .button()
       .click(
         #{hash_to_callback(url_hash)}
-      ).appendTo('#t_#{@table_id}');
+      ).appendTo('#t_' + #{format_type_to_js(@table_id)});
 EOS
     end
 
