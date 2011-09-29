@@ -24,6 +24,7 @@ module JqGridRails
     # :ajax_args      -> Arguments for jQuery.ajax options hash
     # :remote         -> [true|false] Request should be made via ajax
     # :id_replacement -> Value used for dynamic ID replacement (generally not to be altered)
+    # :item_id        -> Use for :item type callbacks to set URL generated ID if not the generic 'id' variable
     def hash_to_callback(hash)
       if(hash.is_a?(Hash) && hash[:build_callback] != false && hash[:url])
         case hash[:build_callback]
@@ -62,19 +63,20 @@ module JqGridRails
       hash[:args] = Array(hash[:args]) unless hash[:args].is_a?(Array)
       hash[:args].push hash[:id_replacement]
       args = extract_callback_variables(hash)
+      item_id = args[:item_id].present? ? args[:item_id] : RawJS.new('id')
       if(hash[:remote])
         if(hash[:with_row])
           args[:ajax_args] ||= {}
           args[:ajax_args][:data] = {:row_data => RawJS.new("jQuery('##{@table_id}').jqGrid('getRowData', id)")}
         end
         " function(id){
-            jQuery.ajax(#{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, id), #{format_type_to_js(args[:ajax_args])});
+            jQuery.ajax(#{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, #{format_type_to_js(item_id)}), #{format_type_to_js(args[:ajax_args])});
           }
         "
       else
         form_rand = rand(999)
         " function(id){
-            jQuery('body').append('<form id=\"redirector_#{form_rand}\" action=\"#{args[:url]}\" method=\"#{args[:method]}\"></form>'.replace(#{format_type_to_js(args[:id_replacement])}, id));
+            jQuery('body').append('<form id=\"redirector_#{form_rand}\" action=\"#{args[:url]}\" method=\"#{args[:method]}\"></form>'.replace(#{format_type_to_js(args[:id_replacement])}, #{format_type_to_js(item_id)}));
             jQuery('#redirector_#{form_rand}').submit();
           }
         "
