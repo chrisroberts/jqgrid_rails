@@ -8,13 +8,13 @@ module JqGridRails
 
     # grid_or_id:: JqGrid Object or ID
     # Returns required HTML for grid
-    def jqgrid_html(grid_or_id)
+    def jqgrid_html(grid_or_id, *args)
       dom_id = grid_or_id.respond_to?(:table_id) ? grid_or_id.table_id : grid_or_id
       output = "<div id=\"#{dom_id}_holder\" style=\"width:100%\"><table id=\"#{dom_id}\" width=\"100%\"></table></div>"
-      if(grid_or_id.respond_to?(:has_link_toolbar?) && grid_or_id.has_link_toolbar?)
+      if((grid_or_id.respond_to?(:has_link_toolbar?) && grid_or_id.has_link_toolbar?) || args.include?(:with_link_toolbar))
         output << "<div id=\"#{dom_id}_linkbar\" class=\"jqgrid_linkbar\"></div>"
       end
-      if(grid_or_id.respond_to?(:has_pager?) && grid_or_id.has_pager? && grid_or_id.options[:pager].is_a?(RawJS))
+      if((grid_or_id.respond_to?(:has_pager?) && grid_or_id.has_pager?) || args.include?(:with_pager))
         output << "<div id=\"#{dom_id}_pager\"></div>"
       end
       output.html_safe
