@@ -141,6 +141,7 @@ module JqGridRails
       set_search_options
       @options = scrub_options_hash(@options)
       sortable_rows = @options.delete(:sortable_rows)
+      has_pager? # convert if required
       output << "jQuery(#{convert_dom_id(@table_id)}).jqGrid(#{format_type_to_js(@options)});\n"
       unless(@local.blank?)
         output << "if(typeof(jqgrid_local_data) == 'undefined'){ var jqgrid_local_data = new Hash(); }\n"
