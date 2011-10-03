@@ -52,6 +52,16 @@ module JqGridRails
       else
         args[:url] = hash[:url]
       end
+      if(hash[:args_replacements].present?)
+        if(hash[:args_replacements].is_a?(Hash))
+          args[:args_replacements] = hash[:args_replacements].map{|fake_id, js_id| "replace(#{format_type_to_js(fake_id)}, #{format_type_to_js(js_id)})" }.join('.')
+          unless(args[:args_replacements].blank?)
+            args[:args_replacements] = ".#{args[:args_replacements]}"
+          end
+        else
+          args[:args_replacements] = hash[:args_replacements]
+        end
+      end
       args[:ajax_args][:type] = args[:method] if hash[:remote]
       args
     end
@@ -70,13 +80,13 @@ module JqGridRails
           args[:ajax_args][:data] = {:row_data => RawJS.new("jQuery('##{@table_id}').jqGrid('getRowData', id)")}
         end
         " function(id){
-            jQuery.ajax(#{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, #{format_type_to_js(item_id)}), #{format_type_to_js(args[:ajax_args])});
+            jQuery.ajax(#{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, #{format_type_to_js(item_id)})#{args[:args_replacements]}, #{format_type_to_js(args[:ajax_args])});
           }
         "
       else
         form_rand = rand(999)
         " function(id){
-            jQuery('body').append('<form id=\"redirector_#{form_rand}\" action=\"#{args[:url]}\" method=\"#{args[:method]}\"></form>'.replace(#{format_type_to_js(args[:id_replacement])}, #{format_type_to_js(item_id)}));
+            jQuery('body').append('<form id=\"redirector_#{form_rand}\" action=\"#{args[:url]}\" method=\"#{args[:method]}\"></form>'.replace(#{format_type_to_js(args[:id_replacement])}, #{format_type_to_js(item_id)})#{args[:args_replacements]});
             jQuery('#redirector_#{form_rand}').submit();
           }
         "
@@ -121,14 +131,14 @@ module JqGridRails
         if(hash[:with_row])
           args[:ajax_args][:data][:row_data => RawJS.new("jQuery('##{@table_id}').jqGrid('getRowData')")]
         end
-        function << "jQuery.ajax(#{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, ary[0]), #{format_type_to_js(args[:ajax_args])}); }"
+        function << "jQuery.ajax(#{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, ary[0])#{args[:args_replacements]}, #{format_type_to_js(args[:ajax_args])}); }"
       else
         randomizer = rand(99999)
         function << "parts = ary.map(
           function(item){
             return '<input type=\"hidden\" name=\"ids[]\" value=\"'+item+'\"/>';
           });
-          target_url = #{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, ary[0]);
+          target_url = #{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, ary[0])#{args[:args_replacements]};
           jQuery('body').append('<form id=\"jqgrid_redirector_#{randomizer}\" action=\"#{args[:url]}\" method=\"#{args[:method]}\">' + parts + '</form>');
           jQuery(#{format_type_to_js(format_id("jqgrid_redirector_#{randomizer}"))}).submit();
         }"
