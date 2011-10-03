@@ -151,11 +151,11 @@ module JqGridRails
     def build_default_callback(hash)
       args = extract_callback_variables(hash)
       if(hash[:remote])
-        "function(){ jQuery.ajax(#{format_type_to_js(args[:url])}, #{format_type_to_js(args[:ajax_args])}); }"
+        "function(){ jQuery.ajax(#{format_type_to_js(args[:url])}#{args[:args_replacements]}, #{format_type_to_js(args[:ajax_args])}); }"
       else
         randomizer = rand(99999)
         " function(){ 
-            jQuery('body').append('<form id=\"jqgrid_redirector_#{randomizer}\" action=\"#{args[:url]}\" method=\"#{args[:method]}\"></form>');
+            jQuery('body').append('<form id=\"jqgrid_redirector_#{randomizer}\" action=\"#{args[:url]}#{args[:args_replacements]}\" method=\"#{args[:method]}\"></form>');
             jQuery(#{format_type_to_js(format_id("jqgrid_redirector_#{randomizer}"))}).submit();
           }"
       end
