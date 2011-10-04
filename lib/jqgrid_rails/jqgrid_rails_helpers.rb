@@ -48,7 +48,8 @@ module JqGridRails
       args[:ajax_args] = hash.delete(:ajax) || {}
       args[:method] = args[:ajax_args][:type] || args[:ajax_args].delete(:method) || hash.delete(:method) || 'get'
       if(hash[:url].is_a?(Symbol))
-        args[:url] = @url_gen.send(hash[:url], *Array(hash[:args]))
+        url_args = hash[:args].is_a?(Array) ? hash[:args] : [hash[:args]]
+        args[:url] = @url_gen.send(hash[:url], *(url_args.sort_by{|x,y| if(x.is_a?(Hash) && y.is_a?(Hash)) then 0 elsif(x.is_a?(Hash)) then 1 else -1 end}))
       else
         args[:url] = hash[:url]
       end
@@ -77,7 +78,7 @@ module JqGridRails
       if(hash[:remote])
         if(hash[:with_row])
           args[:ajax_args] ||= {}
-          args[:ajax_args][:data] = {:row_data => RawJS.new("jQuery('##{@table_id}').jqGrid('getRowData', id)")}
+          args[:ajax_args][:data] = {:row_data => RawJS.new("jQuery(#{convert_dom_id(@table_id)}).jqGrid('getRowData', id)")}
         end
         " function(id){
             jQuery.ajax(#{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, #{format_type_to_js(item_id)})#{args[:args_replacements]}, #{format_type_to_js(args[:ajax_args])});
@@ -95,11 +96,11 @@ module JqGridRails
 
     # Returns callable function to get current selection in array form
     def selection_array(error_when_empty=true, table_id=nil)
-      dom_id = table_id || @table_id
+      dom_id = convert_dom_id(table_id || @table_id)
       " function(){ 
-          ary = jQuery(#{format_type_to_js(format_id(dom_id))}).jqGrid('getGridParam', 'selarrrow');
+          ary = jQuery(#{dom_id}).jqGrid('getGridParam', 'selarrrow');
           if(!ary.length){ ary = []; }
-          ary.push(jQuery(#{format_type_to_js(format_id(dom_id))}).jqGrid('getGridParam', 'selrow'));
+          ary.push(jQuery(#{dom_id}).jqGrid('getGridParam', 'selrow'));
           ary = jQuery.grep(ary, function(value,key){ return value != null && value.length && jQuery.inArray(value, ary) === key; });
           if(!ary.length && #{format_type_to_js(error_when_empty)}){
             alert('Please select items from the table first.');
@@ -129,7 +130,7 @@ module JqGridRails
       if(hash[:remote])
         args[:ajax_args][:data] = {:ids => RawJS.new('ary')}
         if(hash[:with_row])
-          args[:ajax_args][:data][:row_data => RawJS.new("jQuery('##{@table_id}').jqGrid('getRowData')")]
+          args[:ajax_args][:data][:row_data => RawJS.new("jQuery(#{convert_dom_id(@table_id)}).jqGrid('getRowData')")]
         end
         function << "jQuery.ajax(#{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, ary[0])#{args[:args_replacements]}, #{format_type_to_js(args[:ajax_args])}); }"
       else
