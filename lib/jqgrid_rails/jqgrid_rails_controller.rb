@@ -82,7 +82,7 @@ module JqGridRails
     # Returns proper sorter based on inference or user defined
     def discover_sorter(klass, col, fields)
       col = JqGridRails.unescape(col)
-      if(fields.is_a?(Hash) && fields[col][:order].present?)
+      if(fields.is_a?(Hash) && fields[col].try(:[], :order).present?)
         fields[col][:order]
       else
         database_name_by_string(col, klass, fields)
