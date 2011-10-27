@@ -5,7 +5,6 @@ module JqGridRails
     def write_excel(klass, params, fields, heading_format=nil)
       table = raw_response(klass, params, fields)
       heading_format ||= {:bold => 1, :align => :center, :bg_color => 5}
-      fields = scrub_fields(fields)
       path = self.respond_to?(:create_tmpfile) ? create_tmpfile(:name => 'grid_export').path : Rails.root.join('tmp', "grid_export_#{Time.now.to_i.to_s + rand(999).to_s}.xls")
       book = ::WriteExcel.new(path)
       worksheet = book.add_worksheet
