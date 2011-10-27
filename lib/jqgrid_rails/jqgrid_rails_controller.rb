@@ -54,7 +54,7 @@ module JqGridRails
     def scrub_fields(fields)
       clean_fields = nil
       if(fields.is_a?(Hash))
-        clean_fields = {}
+        clean_fields = ActiveSupport::OrderedHash.new
         fields.each_pair do |k,v|
           clean_fields[k.to_s] = v.nil? ? {} : v
         end

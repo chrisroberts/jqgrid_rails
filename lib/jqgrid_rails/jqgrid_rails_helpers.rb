@@ -155,9 +155,19 @@ module JqGridRails
         "function(){ jQuery.ajax(#{format_type_to_js(args[:url])}#{args[:args_replacements]}, #{format_type_to_js(args[:ajax_args])}); }"
       else
         randomizer = rand(99999)
-        " function(){ 
-            jQuery('body').append('<form id=\"jqgrid_redirector_#{randomizer}\" action=\"#{args[:url]}#{args[:args_replacements]}\" method=\"#{args[:method]}\"></form>');
-            jQuery(#{format_type_to_js(format_id("jqgrid_redirector_#{randomizer}"))}).submit();
+        output = " function(){ 
+            jQuery('body').append('<form id=\"jqgrid_redirector_#{randomizer}\" action=\"#{args[:url]}#{args[:args_replacements]}\" method=\"#{args[:method]}\"></form>');"
+        if(hash[:ajax_args] && hash[:ajax_args][:data])
+          output << "var args = #{format_type_to_js(hash[:ajax_args][:data])};
+            Object.keys(args).each(function(key){
+              jQuery('#{format_id("jqgrid_redirector_#{randomizer}")}').append(jQuery('<input/>')
+                .attr('type', 'hidden')
+                .attr('name', key)
+                .val(args[key])
+              );
+            });"
+        end
+        output << "jQuery(#{format_type_to_js(format_id("jqgrid_redirector_#{randomizer}"))}).submit();
           }"
       end
     end

@@ -11,6 +11,7 @@ module JqGridRails
       h_format = book.add_format(heading_format)
       formats = {}
       worksheet.split_panes
+      fields = scrub_fields(fields)
       headings = ActiveSupport::OrderedHash.new
       if(fields.is_a?(Array))
         fields.each do |x|
