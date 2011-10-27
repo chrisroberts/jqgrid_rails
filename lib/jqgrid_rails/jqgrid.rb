@@ -138,7 +138,7 @@ module JqGridRails
         :name => name,
         :empty_selection => true,
         :method => :post,
-        :url => RawJS.new("' + (jQuery(#{convert_dom_id(@table_id)}).jqGrid('getGridParam', 'url').indexOf('?') != -1 ? jQuery(#{convert_dom_id(@table_id)}).jqGrid('getGridParam', 'url') : jQuery(#{convert_dom_id(@table_id)}).jqGrid('getGridParam', 'url') + '?') + Object.keys(jQuery(#{convert_dom_id(@table_id)}).jqGrid('getGridParam', 'postData')).map(function(key){if(key == 'page'){ return key+\"=\"+1; } else if(key == 'rows'){ return key+\"=\"+10000000; } else { return key+\"=\"+jQuery(#{convert_dom_id(@table_id)}).jqGrid('getGridParam', 'postData')[key];}}).join('&') + '&format=xls")
+        :url => RawJS.new("' + (jQuery(#{convert_dom_id(@table_id)}).jqGrid('getGridParam', 'url').indexOf('?') != -1 ? jQuery(#{convert_dom_id(@table_id)}).jqGrid('getGridParam', 'url') : jQuery(#{convert_dom_id(@table_id)}).jqGrid('getGridParam', 'url') + '?') + Object.keys(jQuery(#{convert_dom_id(@table_id)}).jqGrid('getGridParam', 'postData')).map(function(key){if(key == 'page'){ return key+\"=\"+1; } else if(key == 'rows'){ return key+\"=\"+10000000; } else { return key+\"=\"+escape(jQuery(#{convert_dom_id(@table_id)}).jqGrid('getGridParam', 'postData')[key]);}}).join('&') + '&format=xls")
       )
       self
     end
