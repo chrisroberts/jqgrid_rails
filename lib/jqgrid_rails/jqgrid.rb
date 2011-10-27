@@ -117,6 +117,7 @@ module JqGridRails
 
     def disable_link_toolbar
       @link_toolbar_options = nil
+      self
     end
 
     # link:: url hash: :name, :url, :class
@@ -127,6 +128,20 @@ module JqGridRails
       self
     end
     alias_method :add_toolbar_link, :link_toolbar_add
+
+    # name:: text for button
+    # Exports current grid into excel document
+    # TODO: Add options to turn off paging and the like
+    def add_excel_export_button(name='Export to XLS')
+      name = 'Export to XLS' unless name.is_a?(String)
+      link_toolbar_add(
+        :name => name,
+        :empty_selection => true,
+        :method => :post,
+        :url => RawJS.new("' + (jQuery(#{convert_dom_id(@table_id)}).jqGrid('getGridParam', 'url').indexOf('?') != -1 ? jQuery(#{convert_dom_id(@table_id)}).jqGrid('getGridParam', 'url') : jQuery(#{convert_dom_id(@table_id)}).jqGrid('getGridParam', 'url') + '?') + Object.keys(jQuery(#{convert_dom_id(@table_id)}).jqGrid('getGridParam', 'postData')).map(function(key){if(key == 'page'){ return key+\"=\"+1; } else if(key == 'rows'){ return key+\"=\"+10000000; } else { return key+\"=\"+jQuery(#{convert_dom_id(@table_id)}).jqGrid('getGridParam', 'postData')[key];}}).join('&') + '&format=xls")
+      )
+      self
+    end
 
     # Builds out the jqGrid javascript and returns the string
     def build
@@ -142,6 +157,9 @@ module JqGridRails
       @options = scrub_options_hash(@options)
       sortable_rows = @options.delete(:sortable_rows)
       has_pager? # convert if required
+      if(@options[:excel_exportable])
+        add_excel_export_button(@options.delete(:excel_exportable))
+      end
       output << "jQuery(#{convert_dom_id(@table_id)}).jqGrid(#{format_type_to_js(@options)});\n"
       unless(@local.blank?)
         output << "if(typeof(jqgrid_local_data) == 'undefined'){ var jqgrid_local_data = new Hash(); }\n"

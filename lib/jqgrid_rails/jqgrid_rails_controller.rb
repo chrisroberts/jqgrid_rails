@@ -28,6 +28,16 @@ module JqGridRails
     #   Hash: {'col1' => {:fomatter => lambda{|v|v.to_s.upcase}, :order => 'other_table.col1'}}
     # Provides generic JSON response for jqGrid requests (sorting/searching)
     def grid_response(klass, params, fields)
+      raw_response(klass, params, fields).to_json
+    end
+
+    # klass:: ActiveRecord::Base class or ActiveRecord::Relation
+    # params:: Request params
+    # fields:: Fields used within grid. Can be an array of attribute names or a Hash with keys of attributes and Hash values with options
+    #   Array: [col1, col2, col3]
+    #   Hash: {'col1' => {:fomatter => lambda{|v|v.to_s.upcase}, :order => 'other_table.col1'}}
+    # Provides hash result for jqGrid requests (sorting/searching)
+    def raw_response(klass, params, fields)
       allowed_consts = %w(ActiveRecord::Base ActiveRecord::Relation ActiveRecord::NamedScope::Scope)
       unless(allowed_consts.detect{|const| klass.ancestors.detect{|c| c.to_s == const}})
         raise TypeError.new "Unexpected type received. Allowed types are Class or ActiveRecord::Relation. Received: #{klass.class.name}"
@@ -36,8 +46,7 @@ module JqGridRails
       rel = apply_searching(klass, params, clean_fields)
       unsorted = apply_filtering(rel, params, clean_fields)
       rel = apply_sorting(unsorted, params, clean_fields)
-      hash = create_result_hash(unsorted, rel, clean_fields)
-      hash.to_json
+      create_result_hash(unsorted, rel, clean_fields)
     end
 
     # fields:: Fields used within grid
