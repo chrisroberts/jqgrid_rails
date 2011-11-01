@@ -124,6 +124,8 @@ module JqGridRails
         else
           klass.scoped(:order => "#{sorter} #{sort_ord}")
         end
+      else
+        klass
       end
     end
     
