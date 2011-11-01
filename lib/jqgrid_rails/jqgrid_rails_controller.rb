@@ -118,10 +118,12 @@ module JqGridRails
       end
       sorter = discover_sorter(klass, sort_col, fields)
       sort_ord = params[:sord] == 'asc' ? 'ASC' : 'DESC'
-      if(defined?(ActiveRecord::Relation) && klass.is_a?(ActiveRecord::Relation))
-        klass.order("#{sorter} #{sort_ord}")
-      else
-        klass.scoped(:order => "#{sorter} #{sort_ord}")
+      if(sorter.present?)
+        if(defined?(ActiveRecord::Relation) && klass.is_a?(ActiveRecord::Relation))
+          klass.order("#{sorter} #{sort_ord}")
+        else
+          klass.scoped(:order => "#{sorter} #{sort_ord}")
+        end
       end
     end
     
