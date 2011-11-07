@@ -308,6 +308,13 @@ module JqGridRails
          if(width > 0 && ((Math.abs(width) - jQuery(#{convert_dom_id(@table_id)}).width() > 5) || (Math.abs(width) - jQuery(#{convert_dom_id(@table_id)}).width() < -5))){
            jQuery(#{convert_dom_id(@table_id)}).setGridWidth(width - #{(opts[:width_pad] || 40).to_i});
          }
+         var height = _resizable_parent.attr('clientHeight');
+         if(height == null || height < 1){
+           height = _resizable_parent.attr('offsetHeight');
+         }
+         if(height > 0 && ((Math.abs(height) - jQuery(#{convert_dom_id(@table_id)}).height() > 5) || (Math.abs(height) - jQuery(#{convert_dom_id(@table_id)}).height() < -5))){
+           jQuery(#{convert_dom_id(@table_id)}).setGridHeight(height - #{(opts[:height_pad] || 40).to_i});
+         }
        }).trigger('resize');"
     end
   end
