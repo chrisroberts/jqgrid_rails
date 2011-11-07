@@ -74,6 +74,7 @@ module JqGridRails
       hash[:args] = Array(hash[:args]) unless hash[:args].is_a?(Array)
       hash[:args].push hash[:id_replacement]
       args = extract_callback_variables(hash)
+      confirm = args.delete(:confirm)
       item_id = args[:item_id].present? ? args[:item_id] : RawJS.new('id')
       if(hash[:remote])
         if(hash[:with_row])
@@ -81,14 +82,20 @@ module JqGridRails
           args[:ajax_args][:data] = {:row_data => RawJS.new("jQuery(#{convert_dom_id(@table_id)}).jqGrid('getRowData', id)")}
         end
         " function(id){
-            jQuery.ajax(#{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, #{format_type_to_js(item_id)})#{args[:args_replacements]}, #{format_type_to_js(args[:ajax_args])});
+            #{confirm_if_required(
+              confirm,
+              "jQuery.ajax(#{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, #{format_type_to_js(item_id)})#{args[:args_replacements]}, #{format_type_to_js(args[:ajax_args])});"
+            )}
           }
         "
       else
         form_rand = rand(999)
         " function(id){
-            jQuery('body').append('<form id=\"redirector_#{form_rand}\" action=\"#{args[:url]}\" method=\"#{args[:method]}\"></form>'.replace(#{format_type_to_js(args[:id_replacement])}, #{format_type_to_js(item_id)})#{args[:args_replacements]});
-            jQuery('#redirector_#{form_rand}').submit();
+            #{confirm_if_required(
+              confirm,
+              "jQuery('body').append('<form id=\"redirector_#{form_rand}\" action=\"#{args[:url]}\" method=\"#{args[:method]}\"></form>'.replace(#{format_type_to_js(args[:id_replacement])}, #{format_type_to_js(item_id)})#{args[:args_replacements]});
+              jQuery('#redirector_#{form_rand}').submit();"
+            )}
           }
         "
       end
@@ -122,6 +129,7 @@ module JqGridRails
       hash[:args] = Array(hash[:args]) unless hash[:args].is_a?(Array)
       hash[:args].push hash[:id_replacement]
       args = extract_callback_variables(hash)
+      confirm = args.delete(:confirm)
       function = "function(){ 
         rows_func = #{selection_array(true, table_id)} 
         ary = rows_func();
@@ -132,7 +140,7 @@ module JqGridRails
         if(hash[:with_row])
           args[:ajax_args][:data][:row_data => RawJS.new("jQuery(#{convert_dom_id(@table_id)}).jqGrid('getRowData')")]
         end
-        function << "jQuery.ajax(#{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, ary[0])#{args[:args_replacements]}, #{format_type_to_js(args[:ajax_args])}); }"
+        function << confirm_if_required(confirm, "jQuery.ajax(#{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, ary[0])#{args[:args_replacements]}, #{format_type_to_js(args[:ajax_args])}); }")
       else
         randomizer = rand(99999)
         function << "parts = ary.map(
@@ -141,7 +149,7 @@ module JqGridRails
           });
           target_url = #{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, ary[0])#{args[:args_replacements]};
           jQuery('body').append('<form id=\"jqgrid_redirector_#{randomizer}\" action=\"#{args[:url]}\" method=\"#{args[:method]}\">' + parts + '</form>');
-          jQuery(#{format_type_to_js(format_id("jqgrid_redirector_#{randomizer}"))}).submit();
+          #{confirm_if_required(confirm, "jQuery(#{format_type_to_js(format_id("jqgrid_redirector_#{randomizer}"))}).submit();")}
         }"
       end
     end
@@ -151,8 +159,9 @@ module JqGridRails
     # grid is provided via this method
     def build_default_callback(hash)
       args = extract_callback_variables(hash)
+      confirm = args.delete(:confirm)
       if(hash[:remote])
-        "function(){ jQuery.ajax(#{format_type_to_js(args[:url])}#{args[:args_replacements]}, #{format_type_to_js(args[:ajax_args])}); }"
+        "function(){ #{confirm_if_required(confirm, "jQuery.ajax(#{format_type_to_js(args[:url])}#{args[:args_replacements]}, #{format_type_to_js(args[:ajax_args])});")} }"
       else
         randomizer = rand(99999)
         output = " function(){ 
@@ -167,7 +176,7 @@ module JqGridRails
               );
             });"
         end
-        output << "jQuery(#{format_type_to_js(format_id("jqgrid_redirector_#{randomizer}"))}).submit();
+        output << "#{confirm_if_required(confirm, "jQuery(#{format_type_to_js(format_id("jqgrid_redirector_#{randomizer}"))}).submit();")}
           }"
       end
     end
@@ -183,6 +192,7 @@ module JqGridRails
 
     # url_hash:: hash for url building
     # Creates a toolbar button for the grid
+    # TODO: Put confirm in here
     def build_toolbar_button(url_hash)
       url_hash[:empty_selection] ||= url_hash[:single]
       url_hash[:build_callback] ||= :selection unless url_hash[:empty_selection]
@@ -204,6 +214,21 @@ EOS
         options_hash[key] = hash_to_callback(value)
       end
       options_hash
+    end
+
+    # confirm:: Confirmation string
+    # contents:: JS contents for if block
+    # Wraps contents within if block using confirm() as conditional
+    def confirm_if_required(confirm, contents)
+      string = ''
+      if(confirm)
+        string << "if(confirm(#{format_type_to_js(confirm)})){"
+        string << contents
+        string << "}"
+      else
+        string << contents
+      end
+      string
     end
   end
 end
