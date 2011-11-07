@@ -287,7 +287,7 @@ module JqGridRails
           jQuery.each(grid.jqGrid('getRowData'), function(){
             grid.jqGrid(
               'setSelection', 
-              this[grid.jqGrid('getGridParam', 'jsonReader')['id']]
+              this['id']
             );
           });
         }
