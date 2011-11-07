@@ -161,6 +161,7 @@ module JqGridRails
       output = ''
       @options[:load_complete] = "function(){ jQuery(#{convert_dom_id(@table_id)}).jqGrid('setGridWidth', jQuery(#{convert_dom_id(@table_id)} + '_holder').innerWidth(), true); return true; }",
       @options[:datatype] = 'local' unless @local.blank?
+      resizable = @options.delete(:resizable_grid)
       ####################################
       load_multi_select_fix              # TODO: Remove this when fixed in jqGrid
       ####################################
@@ -193,6 +194,13 @@ module JqGridRails
       end
       if(sortable_rows)
         output << enable_sortable_rows(scrub_options_hash(sortable_rows))
+      end
+      unless(resizable == false)
+        if(resizable.respond_to?(:[]))
+          output << resizable_grid(resizable)
+        else
+          output << resizable_grid
+        end
       end
       "#{@output}\n#{output}"
     end
@@ -272,19 +280,35 @@ module JqGridRails
     # This is a fix for the multi select within jqGrid. Rouge values will
     # appear in the selection listing so this cleans things up properly
     def load_multi_select_fix
-      @options[:on_select_all] = 'function(row_ids, status){
+      @options[:on_select_all] = "function(row_ids, status){
         var grid = jQuery(this);
-        grid.jqGrid("resetSelection");
+        grid.jqGrid('resetSelection');
         if(status){
-          jQuery.each(grid.jqGrid("getRowData"), function(){
+          jQuery.each(grid.jqGrid('getRowData'), function(){
             grid.jqGrid(
-              "setSelection", 
-              this[grid.jqGrid("getGridParam", "jsonReader")["id"]]
+              'setSelection', 
+              this[grid.jqGrid('getGridParam', 'jsonReader')['id']]
             );
           });
         }
-        jQuery("#cb_" + ' + @table_id.to_s + ').attr("checked", status);
-      }'
+        jQuery('#cb_' + #{convert_dom_id(@table_id)}.replace(/^#/, '')).attr('checked', status);
+      }"
+    end
+
+    # pad:: Padding after resize
+    # Binds to resizestop event on available parent that has been marked resizable
+    # via jqquery-ui. Resizes grid after container is resized
+    def resizable_grid(opts = {})
+      "var _resizable_parent = jQuery(#{convert_dom_id(@table_id)}).parents('.ui-resizable');
+       _resizable_parent.bind('resizestop', function(){
+         var width = _resizable_parent.attr('clientWidth');
+         if(width == null || width < 1){
+           width = _resizable_parent.attr('offsetWidth');
+         }
+         if(width > 0 && ((Math.abs(width) - jQuery(#{convert_dom_id(@table_id)}).width() > 5) || (Math.abs(width) - jQuery(#{convert_dom_id(@table_id)}).width() < -5))){
+           jQuery(#{convert_dom_id(@table_id)}).setGridWidth(width - #{(opts[:width_pad] || 40).to_i});
+         }
+       }).trigger('resize');"
     end
   end
 end
