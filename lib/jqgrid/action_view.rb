@@ -43,6 +43,8 @@ module JqGrid
           :load_complete      => :loadComplete,
           :grid_complete      => :gridComplete,
           :before_request     => :beforeRequest,
+          :before_select_row  => :beforeSelectRow,
+          :on_select_all      => :onSelectAll,
           :sort_name          => :sortname,
           :sort_order         => :sortorder
         }
@@ -52,7 +54,9 @@ module JqGrid
         js_opts = [
           :loadComplete,
           :gridComplete,
-          :beforeRequest
+          :beforeRequest,
+          :beforeSelectRow,
+          :onSelectAll
         ]
       
         js_opts_set = {
