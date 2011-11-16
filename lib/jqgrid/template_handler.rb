@@ -83,7 +83,8 @@ class JQGRID < ::ActionView::TemplateHandler
         }
         recursive_merger = lambda{|orig,new|
           o = make_hash.call(orig)
-          o.merge(new){ |key,stale,fresh|
+          n = make_hash.call(new)
+          o.merge(n){ |key,stale,fresh|
             st = make_hash.call(stale)
             st.merge(make_hash.call(fresh))
           }
