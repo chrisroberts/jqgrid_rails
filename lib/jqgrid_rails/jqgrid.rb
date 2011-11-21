@@ -156,10 +156,19 @@ module JqGridRails
       self
     end
 
+    def fix_grid_width
+      js = "jQuery(#{convert_dom_id(@table_id)}).jqGrid('setGridWidth', jQuery(#{convert_dom_id(@table_id)} + '_holder').innerWidth(), true); }"
+      if(@options[:load_complete])
+        @options[:load_complete].sub!(/^(\s*function.*?\{)/, "\\1#{js}")
+      else
+        @options[:load_complete] = "function(){ #{js} return true; }"
+      end
+    end
+
     # Builds out the jqGrid javascript and returns the string
     def build
       output = ''
-      @options[:load_complete] = "function(){ jQuery(#{convert_dom_id(@table_id)}).jqGrid('setGridWidth', jQuery(#{convert_dom_id(@table_id)} + '_holder').innerWidth(), true); return true; }",
+      fix_grid_width
       @options[:datatype] = 'local' unless @local.blank?
       resizable = @options.delete(:resizable_grid)
       ####################################
