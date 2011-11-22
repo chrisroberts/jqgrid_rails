@@ -156,8 +156,9 @@ module JqGridRails
       self
     end
 
+    # Resizes grid after loading has completed to prevent blowing out container
     def fix_grid_width
-      js = "jQuery(#{convert_dom_id(@table_id)}).jqGrid('setGridWidth', jQuery(#{convert_dom_id(@table_id)} + '_holder').innerWidth(), true); }"
+      js = "jQuery(#{convert_dom_id(@table_id)}).jqGrid('setGridWidth', jQuery(#{convert_dom_id(@table_id)} + '_holder').innerWidth(), true);"
       if(@options[:load_complete])
         @options[:load_complete].sub!(/^(\s*function.*?\{)/, "\\1#{js}")
       else
