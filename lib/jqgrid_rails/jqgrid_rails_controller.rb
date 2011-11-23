@@ -233,7 +233,7 @@ module JqGridRails
       else
         dbres = klass.find(:all, :limit => params[:rows], :offset => (params[:rows].to_i * (params[:page].to_i - 1)))
       end
-      total = unsorted.respond_to?(:length) ? unsorted.length : unsorted.count
+      total = unsorted.respond_to?(:count) ? unsorted.count : unsorted.length
       total_pages = (total.to_f / params[:rows].to_i).ceil
       res = {'total' => total_pages, 'page' => params[:page], 'records' => total}
       calls = fields.is_a?(Array) ? fields : fields.is_a?(Hash) ? fields.keys : nil
