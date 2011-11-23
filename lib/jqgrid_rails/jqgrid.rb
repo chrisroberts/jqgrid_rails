@@ -160,9 +160,9 @@ module JqGridRails
     def fix_grid_width
       js = "jQuery(#{convert_dom_id(@table_id)}).jqGrid('setGridWidth', jQuery(#{convert_dom_id(@table_id)} + '_holder').innerWidth(), true);"
       if(@options[:load_complete])
-        @options[:load_complete].sub!(/^(\s*function.*?\{)/, "\\1#{js}")
+        @options[:load_complete] = RawJS.new(@options[:load_complete].to_s.sub(/^(\s*function.*?\{)/, "\\1#{js}"))
       else
-        @options[:load_complete] = "function(){ #{js} return true; }"
+        @options[:load_complete] = RawJS.new("function(){ #{js} return true; }")
       end
     end
 
