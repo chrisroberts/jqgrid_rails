@@ -230,10 +230,16 @@ module JqGridRails
     def create_result_hash(unsorted, klass, fields)
       if(defined?(ActiveRecord::Relation) && klass.is_a?(ActiveRecord::Relation))
         dbres = klass.limit(params[:rows].to_i).offset(params[:rows].to_i * (params[:page].to_i - 1)).all
+        if(unsorted.respond_to?(:group_values) && unsorted.group_values.size > 0)
+          total = klass.connection.execute("SELECT COUNT(*) as count from (#{unsorted.to_sql}) AS countable_query").map.first['count'].to_i
+        end
       else
         dbres = klass.find(:all, :limit => params[:rows], :offset => (params[:rows].to_i * (params[:page].to_i - 1)))
+        if(unsorted.respond_to?(:proxy_options) && unsorted.proxy_options[:group].present?)
+          total = klass.connection.execute("SELECT COUNT(*) as count from (#{unsorted.send(:construct_finder_sql, {})}) AS countable_query").map.first['count'].to_i
+        end
       end
-      total = unsorted.respond_to?(:length) ? unsorted.length : unsorted.count
+      total = unsorted.count unless total
       total_pages = (total.to_f / params[:rows].to_i).ceil
       res = {'total' => total_pages, 'page' => params[:page], 'records' => total}
       calls = fields.is_a?(Array) ? fields : fields.is_a?(Hash) ? fields.keys : nil
