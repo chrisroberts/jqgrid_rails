@@ -240,7 +240,8 @@ module JqGridRails
         end
       end
       total = unsorted.count unless total
-      total_pages = (total.to_f / params[:rows].to_i).ceil
+      rows = params[:rows].to_i
+      total_pages = rows > 0 ? (total.to_f / rows).ceil : 0
       res = {'total' => total_pages, 'page' => params[:page], 'records' => total}
       calls = fields.is_a?(Array) ? fields : fields.is_a?(Hash) ? fields.keys : nil
       maps = fields.is_a?(Hash) ? fields : nil
