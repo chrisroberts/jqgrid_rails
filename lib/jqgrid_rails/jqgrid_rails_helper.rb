@@ -1,4 +1,4 @@
-require 'jqgrid_rails/helpers'
+require 'jqgrid_rails/jqgrid_rails_helpers'
 
 module JqGridRails
   class Helper
