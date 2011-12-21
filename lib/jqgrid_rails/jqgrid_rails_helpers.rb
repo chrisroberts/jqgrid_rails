@@ -138,7 +138,7 @@ module JqGridRails
       if(hash[:remote])
         args[:ajax_args][:data] = {:ids => RawJS.new('ary')}
         if(hash[:with_row])
-          args[:ajax_args][:data][:row_data => RawJS.new("jQuery(#{convert_dom_id(@table_id)}).jqGrid('getRowData')")]
+          args[:ajax_args][:data][:row_data => RawJS.new("jQuery(#{convert_dom_id(dom_id)}).jqGrid('getRowData')")]
         end
         function << confirm_if_required(confirm, "jQuery.ajax(#{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, ary[0])#{args[:args_replacements]}, #{format_type_to_js(args[:ajax_args])}); }")
       else
