@@ -130,13 +130,14 @@ module JqGridRails
       hash[:args].push hash[:id_replacement]
       args = extract_callback_variables(hash)
       confirm = args.delete(:confirm)
+      item_id = args[:item_id].present? ? args[:item_id] : RawJS.new('id')
       function = "function(){ 
         rows_func = #{selection_array(true, table_id)} 
         ary = rows_func();
         if(!ary.length){ return false; }
       "
       if(hash[:remote])
-        args[:ajax_args][:data] = {:ids => RawJS.new('ary')}
+        args[:ajax_args][:data] = {item_id.to_s.pluralize.to_sym => RawJS.new('ary')}
         if(hash[:with_row])
           args[:ajax_args][:data][:row_data => RawJS.new("jQuery(#{convert_dom_id(dom_id)}).jqGrid('getRowData')")]
         end
@@ -145,7 +146,7 @@ module JqGridRails
         randomizer = rand(99999)
         function << "parts = ary.map(
           function(item){
-            return '<input type=\"hidden\" name=\"ids[]\" value=\"'+item+'\"/>';
+            return '<input type=\"hidden\" name=\"#{item_id.to_s.pluralize}[]\" value=\"'+item+'\"/>';
           });
           target_url = #{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, ary[0])#{args[:args_replacements]};
           jQuery('body').append('<form id=\"jqgrid_redirector_#{randomizer}\" action=\"#{args[:url]}\" method=\"#{args[:method]}\">' + parts + '</form>');
