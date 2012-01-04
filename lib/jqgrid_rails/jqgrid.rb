@@ -172,9 +172,9 @@ module JqGridRails
       fix_grid_width
       @options[:datatype] = 'local' unless @local.blank?
       resizable = @options.delete(:resizable_grid)
-      ####################################
-      load_multi_select_fix              # TODO: Remove this when fixed in jqGrid
-      ####################################
+      #############################################################
+      load_multi_select_fix unless @options[:no_multi_select_fix] # TODO: Remove this when fixed in jqGrid
+      #############################################################
       map_double_click
       map_single_click
       set_search_options
