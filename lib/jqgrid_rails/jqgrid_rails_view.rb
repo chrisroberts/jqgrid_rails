@@ -59,10 +59,10 @@ module JqGridRails
     def reload_grid(dom_id, *args)
       dom_id = "##{dom_id}" unless dom_id.start_with?('#')
       output = "jQuery('#{dom_id}').trigger('reloadGrid');".html_safe
-      if(args.include?(:raw))
-        output
-      else
+      if(args.include?(:wrapped))
         javascript_tag(output)
+      else 
+        output
       end
     end
   end 
