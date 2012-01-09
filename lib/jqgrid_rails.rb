@@ -2,7 +2,7 @@ require 'jqgrid_rails/version'
 require 'jqgrid_rails/escape_mappings'
 
 if(defined?(Rails))
-  if(Rails.version.split('.').first == '3')
+  if(defined?(Rails::Railtie))
     require 'jqgrid_rails/railtie'
   else
     ActionView::Helpers::AssetTagHelper.register_javascript_expansion(
