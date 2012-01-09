@@ -23,7 +23,7 @@ module JqGridRails
     # grid:: JqGrid Object
     # Returns required javascript for grid
     def jqgrid_js(grid, *args)
-      args.include?(:notag) ? grid.build : javascript_tag(grid.build)
+      args.include?(:notag) || args.include?(:raw) ? grid.build : javascript_tag(grid.build)
     end
 
     # grid:: JqGrid Object
@@ -51,6 +51,19 @@ module JqGridRails
         end
       end
       javascript_tag("tableToGrid(#{convert_dom_id(dom_id)}, #{format_type_to_js(options)}); jQuery(#{convert_dom_id(dom_id)}).trigger('reloadGrid');")
+    end
+
+    # dom_id:: Grid DOM ID
+    # args:: Extra arguments. :raw for no tag wrapping
+    # Reload given table
+    def reload_grid(dom_id, *args)
+      dom_id = "##{dom_id}" unless dom_id.start_with?('#')
+      output = "jQuery('#{dom_id}').trigger('reloadGrid');".html_safe
+      if(args.include?(:raw))
+        output
+      else
+        javascript_tag(output)
+      end
     end
   end 
 end
