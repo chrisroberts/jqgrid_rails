@@ -28,7 +28,26 @@ And run the install task:
 
   rake jqgrid_rails:install
 
+=== Loading assets
+
+Use the javascript and stylesheet expansions to load jqgrid
+
+  <%= javascript_include_tag :jqgrid_rails %>
+  <%= stylesheet_link_tag :jqgrid_rails %>
+
 == Building grids
+
+TODO
+
+== History
+
+jqgrid_rails was originally created by {Nick Ewing}[http://github.com/nickewing].
+
+== Contributors
+
+* {Nick Ewing}[http://github.com/nickewing]
+* {David Cato}[http://github.com/davec]
+* {Ryan Golec}[http://github.com/ryangolec]
 
 == Resources
 
@@ -37,3 +56,7 @@ And run the install task:
 * {jqGrid Options}[http://www.trirand.com/jqgridwiki/doku.php?id=wiki:options]
 * {jqGrid Events}[http://www.trirand.com/jqgridwiki/doku.php?id=wiki:events]
 * {jqGrid ColModel Options}[http://www.trirand.com/jqgridwiki/doku.php?id=wiki:colmodel_options]
+
+== License
+
+* Continuing with the MIT license. See LICENSE.rdoc
