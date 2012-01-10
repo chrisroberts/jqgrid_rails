@@ -2,3 +2,4 @@
 * Forked to provide proper gem releases
 * Only load generator methods if appropriate
 * Make all generator methods available via ActionView::Base for js templates
+* Provide CSRF tokens automatically on non-remote non-GET requests
