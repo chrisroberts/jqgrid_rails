@@ -1,6 +1,7 @@
 #TODO: :with_row option is currently only applied to remote calls. Needs to be updated
 #      for non-ajax calls by adding dynamic form updates to include inputs for row data
 require 'rails_javascript_helpers'
+require 'action_view/helpers/form_tag_helper'
 
 module JqGridRails
   module Helpers
@@ -91,9 +92,10 @@ module JqGridRails
       else
         form_rand = rand(999)
         " function(id){
+            #{csrf_token_discovery(args[:method])}
             #{confirm_if_required(
               confirm,
-              "jQuery('body').append('<form id=\"redirector_#{form_rand}\" action=\"#{args[:url]}\" method=\"#{args[:method]}\"></form>'.replace(#{format_type_to_js(args[:id_replacement])}, #{format_type_to_js(item_id)})#{args[:args_replacements]});
+              "jQuery('body').append('<form id=\"redirector_#{form_rand}\" action=\"#{args[:url]}\" method=\"#{args[:method]}\">'+ csrf_token +'</form>'.replace(#{format_type_to_js(args[:id_replacement])}, #{format_type_to_js(item_id)})#{args[:args_replacements]});
               jQuery('#redirector_#{form_rand}').submit();"
             )}
           }
@@ -139,7 +141,7 @@ module JqGridRails
       if(hash[:remote])
         args[:ajax_args][:data] = {item_id.to_s.pluralize.to_sym => RawJS.new('ary')}
         if(hash[:with_row])
-          args[:ajax_args][:data][:row_data => RawJS.new("jQuery(#{convert_dom_id(dom_id)}).jqGrid('getRowData')")]
+          args[:ajax_args][:data][:row_data] = RawJS.new("jQuery(#{convert_dom_id(dom_id)}).jqGrid('getRowData')")
         end
         function << confirm_if_required(confirm, "jQuery.ajax(#{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, ary[0])#{args[:args_replacements]}, #{format_type_to_js(args[:ajax_args])}); }")
       else
@@ -148,8 +150,9 @@ module JqGridRails
           function(item){
             return '<input type=\"hidden\" name=\"#{item_id.to_s.pluralize}[]\" value=\"'+item+'\"/>';
           });
-          target_url = #{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, ary[0])#{args[:args_replacements]};
-          jQuery('body').append('<form id=\"jqgrid_redirector_#{randomizer}\" action=\"#{args[:url]}\" method=\"#{args[:method]}\">' + parts + '</form>');
+          #{csrf_token_discovery(args[:method])}
+          var target_url = #{format_type_to_js(args[:url])}.replace(#{format_type_to_js(args[:id_replacement])}, ary[0])#{args[:args_replacements]};
+          jQuery('body').append('<form id=\"jqgrid_redirector_#{randomizer}\" action=\"'+ target_url +'\" method=\"#{args[:method]}\">' + parts + csrf_token + '</form>');
           #{confirm_if_required(confirm, "jQuery(#{format_type_to_js(format_id("jqgrid_redirector_#{randomizer}"))}).submit();")}
         }"
       end
@@ -166,7 +169,8 @@ module JqGridRails
       else
         randomizer = rand(99999)
         output = " function(){ 
-            jQuery('body').append('<form id=\"jqgrid_redirector_#{randomizer}\" action=\"#{args[:url]}#{args[:args_replacements]}\" method=\"#{args[:method]}\"></form>');"
+            #{csrf_token_discovery(args[:method])}
+            jQuery('body').append('<form id=\"jqgrid_redirector_#{randomizer}\" action=\"#{args[:url]}#{args[:args_replacements]}\" method=\"#{args[:method]}\">' + csrf_token + '</form>');"
         if(hash[:ajax_args] && hash[:ajax_args][:data])
           output << "var args = #{format_type_to_js(hash[:ajax_args][:data])};
             Object.keys(args).each(function(key){
@@ -230,6 +234,17 @@ EOS
         string << contents
       end
       string
+    end
+
+    def csrf_token_discovery(method)
+      if(method.to_s.downcase == 'get')
+        ''
+      else
+        "var csrf_token = '';
+        if(jQuery('meta[name=\"csrf-param\"]').size() > 0){
+          csrf_token = '<input type=\"hidden\" name=\"'+jQuery('meta[name=\"csrf-param\"]').attr('content')+'\" value=\"'+jQuery('meta[name=\"csrf-token\"]').attr('content')+'\" />';
+        }"
+      end
     end
   end
 end
