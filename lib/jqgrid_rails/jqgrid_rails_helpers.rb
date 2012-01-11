@@ -95,7 +95,7 @@ module JqGridRails
             #{csrf_token_discovery(args[:method])}
             #{confirm_if_required(
               confirm,
-              "jQuery('body').append('<form id=\"redirector_#{form_rand}\" action=\"#{args[:url]}\" method=\"#{args[:method]}\">'+ csrf_token +'</form>'.replace(#{format_type_to_js(args[:id_replacement])}, #{format_type_to_js(item_id)})#{args[:args_replacements]});
+              "jQuery('body').append('<form id=\"redirector_#{form_rand}\" action=\"#{args[:url]}\" method=\"#{args[:method]}\">'.replace(#{format_type_to_js(args[:id_replacement])} + csrf_token +'</form>', #{format_type_to_js(item_id)})#{args[:args_replacements]});
               jQuery('#redirector_#{form_rand}').submit();"
             )}
           }
@@ -237,11 +237,11 @@ EOS
     end
 
     def csrf_token_discovery(method)
+      output = "var csrf_token = '';"
       if(method.to_s.downcase == 'get')
-        ''
+        output
       else
-        "var csrf_token = '';
-        if(jQuery('meta[name=\"csrf-param\"]').size() > 0){
+        output << "if(jQuery('meta[name=\"csrf-param\"]').size() > 0){
           csrf_token = '<input type=\"hidden\" name=\"'+jQuery('meta[name=\"csrf-param\"]').attr('content')+'\" value=\"'+jQuery('meta[name=\"csrf-token\"]').attr('content')+'\" />';
         }"
       end
