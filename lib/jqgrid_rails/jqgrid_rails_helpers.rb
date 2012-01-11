@@ -95,7 +95,7 @@ module JqGridRails
             #{csrf_token_discovery(args[:method])}
             #{confirm_if_required(
               confirm,
-              "jQuery('body').append('<form id=\"redirector_#{form_rand}\" action=\"#{args[:url]}\" method=\"#{args[:method]}\">'.replace(#{format_type_to_js(args[:id_replacement])} + csrf_token +'</form>', #{format_type_to_js(item_id)})#{args[:args_replacements]});
+              "jQuery('body').append('<form id=\"redirector_#{form_rand}\" action=\"#{args[:url]}\" method=\"#{args[:method]}\">'.replace(#{format_type_to_js(args[:id_replacement])}, #{format_type_to_js(item_id)})#{args[:args_replacements]} + csrf_token +'</form>');
               jQuery('#redirector_#{form_rand}').submit();"
             )}
           }
