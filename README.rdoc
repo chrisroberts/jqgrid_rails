@@ -16,7 +16,7 @@ Add JqGridRails to your applications Gemfile:
 
 Or, if you want the bleeding edge, point to the repository:
 
-  gem 'jqgrid_rails', :git => 'git@github.com/ctisol/jqgrid_rails.git'
+  gem 'jqgrid_rails', :git => 'git@github.com/chrisroberts/jqgrid_rails.git'
 
 === Setup
 
