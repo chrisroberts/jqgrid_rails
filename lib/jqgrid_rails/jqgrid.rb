@@ -16,6 +16,8 @@ module JqGridRails
     attr_accessor :table_id
     # Options used for links toolbar
     attr_reader :link_toolbar_options
+    # Detached javascript
+    attr_reader :detached_javascript
 
 
     # table_id:: DOM ID of table for grid to use
@@ -49,6 +51,13 @@ module JqGridRails
       end
       @local = []
       @output = ''
+      @detached_javascript = []
+    end
+
+    # js:: Javascript string
+    # Adds javascript to run on document ready
+    def add_javascript(js)
+      @detached_javascript << js
     end
     
     # name:: Name of column (Invoice)
@@ -166,9 +175,13 @@ module JqGridRails
 
     # Auto selects blank drop down option to combat Chrome/webkit's unordered hashing
     def filter_toolbar_autoselect_blanks
-      insert_into_callback(
-        :load_complete,
-        "jQuery('#{convert_dom_id(@table_id)}').find('th[role=\"columnheader\"]').find('option[value=\"\"]').each(function(){ jQuery(this).attr('selected', true); });"
+      add_javascript(
+        "jQuery(#{convert_dom_id(@table_id)} + '_holder')" <<
+          ".find('th[role=\"columnheader\"]')" <<
+            ".find('option[value=\"\"]').each(" <<
+              'function(){' <<
+                "jQuery(this).attr('selected', true);" <<
+              '});'
       )
     end
 

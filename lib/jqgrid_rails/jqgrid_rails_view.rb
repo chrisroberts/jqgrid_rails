@@ -31,6 +31,9 @@ module JqGridRails
     def jq_grid(grid)
       output = jqgrid_html(grid)
       output << jqgrid_js(grid)
+      if grid.detached_javascript.present?
+        output << javascript_tag{ "jQuery(document).ready(function(){ #{grid.detached_javascript.join("\n")}});".html_safe }
+      end
       output.html_safe
     end
     alias_method :jqgrid, :jq_grid
