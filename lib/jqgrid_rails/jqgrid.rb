@@ -158,23 +158,31 @@ module JqGridRails
 
     # Resizes grid after loading has completed to prevent blowing out container
     def fix_grid_width
-      js = "jQuery(#{convert_dom_id(@table_id)}).jqGrid('setGridWidth', jQuery(#{convert_dom_id(@table_id)} + '_holder').innerWidth(), true);"
-      if(@options[:load_complete])
-        @options[:load_complete] = RawJS.new(@options[:load_complete].to_s.sub(/^(\s*function.*?\{)/, "\\1#{js}"))
-      else
-        @options[:load_complete] = RawJS.new("function(){ #{js} return true; }")
-      end
+      insert_into_callback(
+        :load_complete,
+        "jQuery(#{convert_dom_id(@table_id)}).jqGrid('setGridWidth', jQuery(#{convert_dom_id(@table_id)} + '_holder').innerWidth(), true);"
+      )
+    end
+
+    # Auto selects blank drop down option to combat Chrome/webkit's unordered hashing
+    def filter_toolbar_autoselect_blanks
+      insert_into_callback(
+        :load_complete,
+        "jQuery('#{convert_dom_id(@table_id)}').find('th[role=\"columnheader\"]').find('option[value=\"\"]').each(function(){ jQuery(this).attr('selected', true); });"
+      )
     end
 
     # Builds out the jqGrid javascript and returns the string
     def build
       output = ''
       fix_grid_width
+      filter_toolbar_autoselect_blanks unless @options[:no_filter_toolbar_autoselect_blanks]
       @options[:datatype] = 'local' unless @local.blank?
       resizable = @options.delete(:resizable_grid)
       #############################################################
       load_multi_select_fix unless @options[:no_multi_select_fix] # TODO: Remove this when fixed in jqGrid
       #############################################################
+
       map_double_click
       map_single_click
       set_search_options
@@ -326,6 +334,17 @@ module JqGridRails
            jQuery(#{convert_dom_id(@table_id)}).setGridHeight(height - #{(opts[:height_pad] || 40).to_i});
          }
        }).trigger('resize');"
+    end
+
+    # key:: callback name
+    # js:: JS string
+    # Insert JS into callback leaving existing callback code intact
+    def insert_into_callback(key, js)
+      if(@options[key])
+        @options[key] = RawJS.new(@options[key].to_s.sub(/^(\s*function.*?\{)/, "\\1#{js}"))
+      else
+        @options[key] = RawJS.new("function(){ #{js} return true; }")
+      end
     end
   end
 end
