@@ -1,3 +1,6 @@
+== v1.2.1
+* Auto select blank values in filter select boxes to combat Webkit ordering issues
+
 == v1.2.0
 * Forked to provide proper gem releases
 * Only load generator methods if appropriate
