@@ -1,3 +1,7 @@
+== v1.2.2
+* Use jQuery for iterations
+* Allow request method to be defined for excel exports
+
 == v1.2.1
 * Auto select blank values in filter select boxes to combat Webkit ordering issues
 
