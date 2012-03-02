@@ -1,3 +1,6 @@
+== v1.2.3
+* Add more parameter grabbing for excel generation
+
 == v1.2.2
 * Use jQuery for iterations
 * Allow request method to be defined for excel exports
