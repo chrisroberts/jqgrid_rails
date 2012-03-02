@@ -173,7 +173,7 @@ module JqGridRails
             jQuery('body').append('<form id=\"jqgrid_redirector_#{randomizer}\" action=\"#{args[:url]}#{args[:args_replacements]}\" method=\"#{args[:method]}\">' + csrf_token + '</form>');"
         if(hash[:ajax_args] && hash[:ajax_args][:data])
           output << "var args = #{format_type_to_js(hash[:ajax_args][:data])};
-            Object.keys(args).each(function(key){
+            jQuery(Object.keys(args)).each(function(idx,key){
               jQuery('#{format_id("jqgrid_redirector_#{randomizer}")}').append(jQuery('<input/>')
                 .attr('type', 'hidden')
                 .attr('name', key)

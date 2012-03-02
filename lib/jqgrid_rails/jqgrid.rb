@@ -146,13 +146,13 @@ module JqGridRails
       link_toolbar_add(
         :name => name,
         :empty_selection => true,
-        :method => :post,
+        :method => @options[:excel_request_method] || :post,
         :url => RawJS.new("' + jQuery(#{convert_dom_id(@table_id)}).jqGrid('getGridParam', 'url') + '"),
         :ajax_args => {
           :data => RawJS.new("(function(){
             vals = jQuery(#{convert_dom_id(@table_id)}).jqGrid('getGridParam', 'postData');
             res = {};
-            Object.keys(vals).each(function(key){
+            jQuery(Object.keys(vals)).each(function(idx,key){
               res[key] = vals[key];
             });
             res['rows'] = 10000000;
