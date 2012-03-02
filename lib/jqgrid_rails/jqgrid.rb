@@ -150,8 +150,23 @@ module JqGridRails
         :url => RawJS.new("' + jQuery(#{convert_dom_id(@table_id)}).jqGrid('getGridParam', 'url') + '"),
         :ajax_args => {
           :data => RawJS.new("(function(){
-            vals = jQuery(#{convert_dom_id(@table_id)}).jqGrid('getGridParam', 'postData');
-            res = {};
+            var res = {};
+            var grid_url = jQuery(#{convert_dom_id(@table_id)}).jqGrid('getGridParam', 'url');
+            var vals = jQuery(#{convert_dom_id(@table_id)}).jqGrid('getGridParam', 'postData');
+            jQuery(
+              grid_url.substr(grid_url.indexOf('?'), grid_url.length)
+              .split('&')
+            ).each(function(idx,val){
+              var x = val.split('=');
+              var key = decodeURIComponent(x[0]);
+              var value = decodeURIComponent(x[1]);
+              if(key.substr(key.length - 2, key.length) == '[]'){
+                res[key.substr(0, key.length - 2)] = [];
+                res[key.substr(0, key.length - 2)].push(value);
+              } else {
+                res[key] = value;
+              }
+            });
             jQuery(Object.keys(vals)).each(function(idx,key){
               res[key] = vals[key];
             });
