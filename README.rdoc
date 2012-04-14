@@ -47,6 +47,7 @@ jqgrid_rails was originally created by {Nick Ewing}[http://github.com/nickewing]
 
 * {Nick Ewing}[http://github.com/nickewing]
 * {David Cato}[http://github.com/davec]
+* {Christopher Kuttruff}[http://github.com/ckuttruff]
 * {Ryan Golec}[http://github.com/ryangolec]
 
 == Resources
