@@ -2,7 +2,7 @@ module JqGridRails
   # GridStructure acts as a container for the various jqgrid_rails elements. It is used to store
   # the grid's scopes, column data, and response options. These elements can then be used to 
   # generate the ultimate, grid, response and scope meant to be used in the controller
-  class JqGridStructure
+  class Structure
     # base_class:: name of model containing GridStructure (used to generate some grid defaults)
     # grid_name:: used to identify grid (convention is action_name_grid; eg: index_grid)
     def initialize(base_class, grid_name)

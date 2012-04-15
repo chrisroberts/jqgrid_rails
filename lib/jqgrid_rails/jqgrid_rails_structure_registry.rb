@@ -4,7 +4,7 @@ module JqGridRails
   # JqGridStructureRegistry is a module that, once included, adds some class methods to enable
   # registering and fetching of grid structures by the grid's name
   # see examples/usage.rb file for more details
-  module JqGridStructureRegistry
+  module StructureRegistry
 
     def self.included(base)
       base.extend(ClassMethods)
@@ -15,7 +15,7 @@ module JqGridRails
       # grid_name:: grid name symbol (first arg of JqGrid.new(...))
       def register_grid(grid_name)
         @grids ||= {}
-        @grids[grid_name.to_sym] = JqGridRails::JqGridStructure.new(self, grid_name)
+        @grids[grid_name.to_sym] = JqGridRails::Structure.new(self, grid_name)
       end
 
       # Fetches grid from grid_name symbol

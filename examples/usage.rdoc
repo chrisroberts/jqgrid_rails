@@ -122,18 +122,21 @@ The first parameter is what we are actually querying against. For simple tables 
 
 === Registry/Structure
 
-As a convenient structure to contain and generate grids with sensible (and easily customizable) default options, JqGridRails provides registry and structure modules that aid in storage grid creation.
+As a convenient structure to contain and generate grids with sensible (and 
+easily customizable) default options, JqGridRails provides registry and 
+structure modules that aid in storage grid creation.
 
 Within the model that you want to associate the registry, provide the following...
 
   # app/models/grid_model.rb
 
   class GridModel < ActiveRecord::Base
-    include JqGridRails::JqGridStructureRegistry
+    include JqGridRails::StructureRegistry
     self.register_grid(:index_grid)
   end 
 
-This will create a slot for a JqGridStructure object that can be retrieved later with GridModel.get_grid(:index_grid)
+This will create a slot for a JqGridRails::Structure object that can be retrieved 
+later with GridModel.get_grid(:index_grid)
 
   # app/controllers/grids_controller.rb
   class GridsController < ApplicationController
@@ -153,11 +156,19 @@ This will create a slot for a JqGridStructure object that can be retrieved later
     end
   end
 
-JqGridStructure#add_column is very similar to JqGrid#add_column... the :columns key corresponds to the third argument of JqGrid#add_column and accepts all the same options.  The :response key is used to pass on options to the grid_response (see "Populating the grid" above).
+JqGridRails::Structure#add_column is very similar to JqGrid#add_column... the :columns 
+key corresponds to the third argument of JqGrid#add_column and accepts all the 
+same options.  The :response key is used to pass on options to the grid_response 
+(see "Populating the grid" above).
 
-These options along with the #add_scope provide all the necessary information to create the grid. The #create_grid method accepts an optional argument (see "Options Hash" above) that is merged into a hash of reasonable default options.
+These options along with the #add_scope provide all the necessary information to
+create the grid. The #create_grid method accepts an optional argument (see 
+"Options Hash" above) that is merged into a hash of reasonable default options.
 
-The advantage of this registry structure, besides the convenience that it provides, is that it gives greater flexibility regarding where grids can be constructed.  A good use case for this would involve adding columns in a model extension.
+The advantage of this registry structure, besides the convenience that it 
+provides, is that it gives greater flexibility regarding where grids can be 
+constructed.  A good use case for this would involve adding columns in a model 
+extension.
 
   # lib/extensions/models/grid_model_extension.rb
   # (this would be from a rails application using the above model, etc as an engine)
@@ -171,9 +182,11 @@ The advantage of this registry structure, besides the convenience that it provid
     # Add nifty_association to grid_model index grid                        
 
     grid = GridModel.get_grid(:index_grid)
-    grid.add_scope(GridModel.include(:foo).
-                   select("foos.name AS foo_name"))
-    gridd.add_column('Foo', 'foo_name', { :response => { :where => 'foos.name',
-                                                         :order => 'foo_name' } } )
-  
+    grid.add_scope(GridModel.include(:foo).select("foos.name AS foo_name"))
+    grid.add_column('Foo', 'foo_name',
+      :response => { 
+        :where => 'foos.name',
+        :order => 'foo_name' 
+      }
+    )
   end
