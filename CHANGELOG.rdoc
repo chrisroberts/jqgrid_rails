@@ -1,3 +1,6 @@
+== v1.2.4
+* Add Registry/Structure support (thanks {Chris Kuttruff}[https://github.com/ckuttruff])
+
 == v1.2.3
 * Add more parameter grabbing for excel generation
 
